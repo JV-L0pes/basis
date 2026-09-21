@@ -1,0 +1,169 @@
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Field,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Textarea,
+  toast,
+} from "@basis/ui"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+
+import { type RegisterClientInput, useCreateClient } from "@/entities/client/api"
+import { toProblem } from "@/shared/api/problem"
+import { useI18n } from "@/shared/i18n/provider"
+
+const schema = z.object({
+  name: z.string().min(2, "common.required").max(120),
+  email: z.string().email("common.required").max(254),
+  tax_id: z.string().min(11, "common.required").max(18),
+  notes: z.string().max(500).optional(),
+  profile: z.enum(["conservative", "moderate", "aggressive", "questionnaire"]),
+})
+
+type FormValues = z.infer<typeof schema>
+
+const ANSWER_SETS: Record<string, number[]> = {
+  conservative: [0, 1, 1, 0, 1],
+  moderate: [2, 2, 2, 2, 2],
+  aggressive: [4, 4, 3, 4, 4],
+}
+
+export function ClientFormDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const { t } = useI18n()
+  const createClient = useCreateClient()
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: "",
+      email: "",
+      tax_id: "",
+      notes: "",
+      profile: "questionnaire",
+    },
+  })
+
+  const onSubmit = form.handleSubmit(async (values) => {
+    const answers = values.profile === "questionnaire" ? undefined : ANSWER_SETS[values.profile]
+    const payload: RegisterClientInput = {
+      name: values.name,
+      email: values.email,
+      tax_id: values.tax_id,
+      notes: values.notes || undefined,
+      suitability_answers: answers,
+    }
+    try {
+      await createClient.mutateAsync(payload)
+      toast.success(t("clients.created"))
+      form.reset()
+      onOpenChange(false)
+    } catch (error) {
+      const problem = toProblem(error)
+      form.setError("root", { message: problem.detail })
+    }
+  })
+
+  const errors = form.formState.errors
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent aria-describedby={undefined}>
+        <DialogHeader>
+          <DialogTitle>{t("clients.new")}</DialogTitle>
+          <DialogDescription>{t("clients.subtitle")}</DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={onSubmit} noValidate className="form-grid two">
+          <Field
+            label={t("clients.name")}
+            htmlFor="client-name"
+            required
+            error={errors.name ? t("common.required") : undefined}
+          >
+            <Input id="client-name" {...form.register("name")} />
+          </Field>
+          <Field
+            label={t("clients.email")}
+            htmlFor="client-email"
+            required
+            error={errors.email ? t("common.required") : undefined}
+          >
+            <Input id="client-email" type="email" {...form.register("email")} />
+          </Field>
+          <Field
+            label={t("clients.taxId")}
+            htmlFor="client-tax"
+            required
+            error={errors.tax_id ? t("common.required") : undefined}
+          >
+            <Input id="client-tax" placeholder="000.000.000-00" {...form.register("tax_id")} />
+          </Field>
+          <Field label={t("clients.suitability")} htmlFor="client-profile">
+            <Select
+              value={form.watch("profile")}
+              onValueChange={(value) => form.setValue("profile", value as FormValues["profile"])}
+            >
+              <SelectTrigger id="client-profile">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="questionnaire">{t("clients.answers")}</SelectItem>
+                <SelectItem value="conservative">{t("suitability.conservative")}</SelectItem>
+                <SelectItem value="moderate">{t("suitability.moderate")}</SelectItem>
+                <SelectItem value="aggressive">{t("suitability.aggressive")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field
+            label={t("common.notes")}
+            htmlFor="client-notes"
+            className="md:col-span-2"
+            hint={t("common.optional")}
+          >
+            <Textarea
+              id="client-notes"
+              placeholder={t("clients.notesPlaceholder")}
+              {...form.register("notes")}
+            />
+          </Field>
+
+          {errors.root ? (
+            <p
+              role="alert"
+              className="md:col-span-2 border border-negative px-3 py-2 text-sm text-negative"
+            >
+              {errors.root.message}
+            </p>
+          ) : null}
+
+          <DialogFooter className="md:col-span-2">
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" loading={createClient.isPending}>
+              {createClient.isPending ? t("common.saving") : t("common.create")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
