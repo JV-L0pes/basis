@@ -2,7 +2,6 @@ import {
   Badge,
   Button,
   formatCurrency,
-  formatPercent,
   Ledger,
   LedgerBody,
   LedgerCell,
@@ -12,11 +11,15 @@ import {
   Skeleton,
 } from "@basis/ui"
 import { useState } from "react"
+
 import { useBookOverview } from "@/entities/instrument/api"
 import { usePortfolios } from "@/entities/portfolio/api"
 import { OpenPortfolioDialog } from "@/features/portfolios/open-portfolio-dialog"
 import { useI18n } from "@/shared/i18n/provider"
+import { currencyOrDash, percentPointsOrDash, toneOf } from "@/shared/lib/display"
 import { Metric, PageHeader } from "@/shared/ui/primitives"
+
+const SKELETON_KEYS = ["r1", "r2", "r3", "r4", "r5"] as const
 
 export function PortfoliosPage() {
   const { t, locale } = useI18n()
@@ -42,19 +45,19 @@ export function PortfoliosPage() {
       <section className="metric-grid">
         <Metric
           label={t("dashboard.aum")}
-          value={formatCurrency(book.data?.total_market_value ?? 0, "BRL", locale)}
+          value={currencyOrDash(book.data?.total_market_value, "BRL", locale)}
         />
         <Metric label={t("dashboard.portfolios")} value={String(book.data?.portfolio_count ?? 0)} />
         <Metric
           label={t("portfolios.netResult")}
           value={formatCurrency(totalResult, "BRL", locale)}
-          tone={totalResult >= 0 ? "pos" : "neg"}
+          tone={toneOf(totalResult)}
         />
       </section>
 
       {portfolios.isLoading ? (
         <div className="flex flex-col gap-2">
-          {["r1", "r2", "r3", "r4", "r5"].map((key) => (
+          {SKELETON_KEYS.map((key) => (
             <Skeleton key={key} />
           ))}
         </div>
@@ -73,7 +76,7 @@ export function PortfoliosPage() {
           <LedgerBody>
             {items.map((portfolio) => {
               const valuation = portfolio.valuation
-              const result = Number(valuation?.net_result ?? 0)
+              const statusVariant = portfolio.status === "active" ? "positive" : "muted"
               return (
                 <LedgerRow key={portfolio.id}>
                   <LedgerCell>
@@ -88,18 +91,16 @@ export function PortfoliosPage() {
                     </span>
                   </LedgerCell>
                   <LedgerCell numeric>
-                    {formatCurrency(valuation?.market_value ?? 0, portfolio.base_currency, locale)}
+                    {currencyOrDash(valuation?.market_value, portfolio.base_currency, locale)}
                   </LedgerCell>
-                  <LedgerCell numeric className={result >= 0 ? "pos" : "neg"}>
-                    {formatCurrency(result, portfolio.base_currency, locale)}
-                  </LedgerCell>
-                  <LedgerCell numeric>
-                    {valuation?.return_percent !== null && valuation?.return_percent !== undefined
-                      ? formatPercent(Number(valuation.return_percent) / 100, locale)
-                      : "—"}
+                  <LedgerCell numeric className={toneOf(valuation?.net_result) ?? ""}>
+                    {currencyOrDash(valuation?.net_result, portfolio.base_currency, locale)}
                   </LedgerCell>
                   <LedgerCell numeric>
-                    <Badge variant={portfolio.status === "active" ? "positive" : "muted"}>
+                    {percentPointsOrDash(valuation?.return_percent, locale)}
+                  </LedgerCell>
+                  <LedgerCell numeric>
+                    <Badge variant={statusVariant}>
                       {t(`status.${portfolio.status}` as "status.active")}
                     </Badge>
                   </LedgerCell>

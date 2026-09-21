@@ -1,10 +1,10 @@
 import { Toaster } from "@basis/ui"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { type ReactNode, useEffect, useState } from "react"
+import { type ReactNode, useEffect, useRef, useState } from "react"
 
 import { me } from "@/entities/session/api"
 import { useSessionStore } from "@/entities/session/store"
-import { refreshAccessToken } from "@/shared/api/client"
+import { configureAuth, refreshAccessToken } from "@/shared/api/client"
 import { ApiError } from "@/shared/api/problem"
 import { I18nProvider } from "@/shared/i18n/provider"
 import { sessionBootstrap } from "@/shared/session-bootstrap"
@@ -23,6 +23,18 @@ const queryClient = new QueryClient({
   },
 })
 
+// Wire the HTTP layer to the session store (shared/api cannot import entities).
+configureAuth({
+  getAccessToken: () => useSessionStore.getState().accessToken,
+  onSession: (session) =>
+    useSessionStore.getState().setSession({
+      user: session.user,
+      accessToken: session.token.access_token,
+      expiresIn: session.token.expires_in,
+    }),
+  onSignedOut: () => useSessionStore.getState().clear(),
+})
+
 /**
  * Restores the session on boot: the refresh cookie is exchanged for an access
  * token (memory only), then the profile is fetched. Renders children either
@@ -30,29 +42,31 @@ const queryClient = new QueryClient({
  */
 function SessionBootstrap({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
+  const alive = useRef(true)
   const setSession = useSessionStore((state) => state.setSession)
 
   useEffect(() => {
-    let cancelled = false
+    alive.current = true
+    const isAlive = () => alive.current
     async function restore() {
       const token = await refreshAccessToken()
-      if (cancelled) return
+      if (!isAlive()) return
       if (token) {
         try {
           const user = await me()
-          if (!cancelled) {
+          if (isAlive()) {
             setSession({ user, accessToken: token, expiresIn: 900 })
           }
         } catch {
-          /* the token was valid but the profile failed — keep the session empty */
+          /* valid token but profile failed — keep the session empty */
         }
       }
-      if (!cancelled) setReady(true)
+      if (isAlive()) setReady(true)
       sessionBootstrap.complete()
     }
     void restore()
     return () => {
-      cancelled = true
+      alive.current = false
     }
   }, [setSession])
 
@@ -76,5 +90,3 @@ export function AppProviders({ children }: { children: ReactNode }) {
     </QueryClientProvider>
   )
 }
-
-export { queryClient }

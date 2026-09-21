@@ -4,20 +4,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { api, unwrap } from "@/shared/api/client"
 
 export type Client = components["schemas"]["ClientResponse"]
-export type ClientList = components["schemas"]["ClientListResponse"]
-export type ClientStatus = "active" | "archived"
 
-export type ClientFilters = {
+type ClientStatus = "active" | "archived"
+
+export interface ClientFilters {
   query?: string
   status?: ClientStatus
   limit?: number
   cursor?: string | null
 }
 
-export const clientsKeys = {
+const clientsKeys = {
   all: ["clients"] as const,
   list: (filters: ClientFilters) => ["clients", "list", filters] as const,
-  detail: (id: string) => ["clients", "detail", id] as const,
 }
 
 export function useClients(filters: ClientFilters = {}) {
@@ -28,7 +27,7 @@ export function useClients(filters: ClientFilters = {}) {
         api.GET("/api/v1/clients", {
           params: {
             query: {
-              query: filters.query || undefined,
+              query: filters.query ?? undefined,
               status: filters.status,
               limit: filters.limit ?? 20,
               cursor: filters.cursor ?? undefined,
@@ -39,16 +38,7 @@ export function useClients(filters: ClientFilters = {}) {
   })
 }
 
-export function useClient(id: string) {
-  return useQuery({
-    queryKey: clientsKeys.detail(id),
-    queryFn: () =>
-      unwrap(api.GET("/api/v1/clients/{client_id}", { params: { path: { client_id: id } } })),
-    enabled: Boolean(id),
-  })
-}
-
-export type RegisterClientInput = {
+export interface RegisterClientInput {
   name: string
   email: string
   tax_id: string

@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 
 import { cn } from "../../lib/utils"
 
-export type FieldProps = {
+export interface FieldProps {
   label?: ReactNode
   htmlFor?: string
   hint?: ReactNode
@@ -14,6 +14,8 @@ export type FieldProps = {
 
 /** Label + control + hint/error. The error replaces the hint, per Ink. */
 export function Field({ label, htmlFor, hint, error, required, className, children }: FieldProps) {
+  const message = error ?? hint
+  const isError = error !== undefined && error !== null
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       {label ? (
@@ -26,12 +28,13 @@ export function Field({ label, htmlFor, hint, error, required, className, childr
         </label>
       ) : null}
       {children}
-      {error ? (
-        <p role="alert" className="text-xs text-destructive">
-          {error}
+      {message ? (
+        <p
+          role={isError ? "alert" : undefined}
+          className={isError ? "text-xs text-destructive" : "text-xs text-ash"}
+        >
+          {message}
         </p>
-      ) : hint ? (
-        <p className="text-xs text-ash">{hint}</p>
       ) : null}
     </div>
   )

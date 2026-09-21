@@ -34,20 +34,26 @@ export function LedgerCell({ className, numeric, ...props }: LedgerCellProps) {
   return <td className={cn(numeric && "num", className)} {...props} />
 }
 
-export type ValueProps = {
+interface ValueProps {
   value: number | string | null | undefined
   format: (value: number | string | null | undefined) => string
   className?: string
 }
 
+function toneOf(value: number | null): "pos" | "neg" | undefined {
+  if (value === null || value === 0) return undefined
+  return value > 0 ? "pos" : "neg"
+}
+
 /** A signed value rendered in the value colours (positive/negative). */
 export function LedgerValue({ value, format, className }: ValueProps) {
   const parsed = value === null || value === undefined ? null : Number(value)
-  const tone =
-    parsed === null || Number.isNaN(parsed) || parsed === 0 ? undefined : parsed > 0 ? "pos" : "neg"
+  const isFiniteValue = parsed !== null && !Number.isNaN(parsed)
+  const tone = isFiniteValue ? toneOf(parsed) : undefined
+  const sign = isFiniteValue && parsed > 0 ? "+" : ""
   return (
     <span className={cn(tone, className)}>
-      {parsed !== null && !Number.isNaN(parsed) && parsed > 0 ? "+" : ""}
+      {sign}
       {format(value)}
     </span>
   )

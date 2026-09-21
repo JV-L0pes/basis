@@ -53,6 +53,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm biome ci .
+      - run: pnpm lint:eslint
+      - run: pnpm knip
       - run: pnpm turbo run lint typecheck test build
 
   api:

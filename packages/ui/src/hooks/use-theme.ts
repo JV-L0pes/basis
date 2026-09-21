@@ -8,10 +8,7 @@ function readInitialTheme(): Theme {
   if (typeof document === "undefined") return "light"
   const fromDom = document.documentElement.dataset.theme
   if (fromDom === "dark" || fromDom === "light") return fromDom
-  if (typeof window !== "undefined" && window.matchMedia) {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-  }
-  return "light"
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 }
 
 /**

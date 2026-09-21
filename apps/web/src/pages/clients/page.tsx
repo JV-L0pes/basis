@@ -24,6 +24,7 @@ import {
   useReactivateClient,
 } from "@/entities/client/api"
 import { ClientFormDialog } from "@/features/clients/client-form-dialog"
+import { SuitabilityDialog } from "@/features/clients/suitability-dialog"
 import { toProblem } from "@/shared/api/problem"
 import { useI18n } from "@/shared/i18n/provider"
 import { AsyncState, PageHeader } from "@/shared/ui/primitives"
@@ -40,6 +41,8 @@ export function ClientsPage() {
   const [status, setStatus] = useState<"all" | "active" | "archived">("all")
   const [cursor, setCursor] = useState<string | null>(null)
   const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState<Client | undefined>(undefined)
+  const [assessing, setAssessing] = useState<Client | undefined>(undefined)
 
   const clients = useClients({
     query: query || undefined,
@@ -50,6 +53,7 @@ export function ClientsPage() {
   const reactivate = useReactivateClient()
 
   const items = clients.data?.items ?? []
+  const nextCursor = clients.data?.next_cursor ?? null
 
   const toggleStatus = async (client: Client) => {
     try {
@@ -71,7 +75,16 @@ export function ClientsPage() {
         kicker={t("clients.kicker")}
         title={t("clients.title")}
         subtitle={t("clients.subtitle")}
-        actions={<Button onClick={() => setFormOpen(true)}>{t("clients.new")}</Button>}
+        actions={
+          <Button
+            onClick={() => {
+              setEditing(undefined)
+              setFormOpen(true)
+            }}
+          >
+            {t("clients.new")}
+          </Button>
+        }
       />
 
       <div className="flex flex-wrap items-end gap-3">
@@ -155,6 +168,25 @@ export function ClientsPage() {
                     <button
                       type="button"
                       className="plain"
+                      onClick={() => {
+                        setEditing(client)
+                        setFormOpen(true)
+                      }}
+                    >
+                      {t("common.edit")}
+                    </button>
+                    <button
+                      type="button"
+                      className="plain"
+                      onClick={() => {
+                        setAssessing(client)
+                      }}
+                    >
+                      {t("clients.suitability")}
+                    </button>
+                    <button
+                      type="button"
+                      className="plain"
                       onClick={() => void toggleStatus(client)}
                       disabled={archive.isPending || reactivate.isPending}
                     >
@@ -171,11 +203,11 @@ export function ClientsPage() {
           <span className="mono text-ash">
             {t("clients.subtitle")} · {items.length}
           </span>
-          {clients.data?.next_cursor ? (
+          {nextCursor ? (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCursor(clients.data?.next_cursor ?? null)}
+              onClick={() => setCursor(nextCursor)}
               loading={clients.isFetching}
             >
               {t("common.more")}
@@ -184,7 +216,23 @@ export function ClientsPage() {
         </div>
       </AsyncState>
 
-      <ClientFormDialog open={formOpen} onOpenChange={setFormOpen} />
+      <ClientFormDialog
+        open={formOpen}
+        onOpenChange={(open) => {
+          setFormOpen(open)
+          if (!open) setEditing(undefined)
+        }}
+        client={editing}
+      />
+      {assessing ? (
+        <SuitabilityDialog
+          client={assessing}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setAssessing(undefined)
+          }}
+        />
+      ) : null}
     </main>
   )
 }

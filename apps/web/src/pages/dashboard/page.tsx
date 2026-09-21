@@ -2,7 +2,6 @@ import {
   Donut,
   formatCompact,
   formatCurrency,
-  formatPercent,
   Ledger,
   LedgerBody,
   LedgerCell,
@@ -16,6 +15,7 @@ import { TrendDown, TrendUp } from "@basis/ui/icons"
 import { useBookOverview, useMarketOverview } from "@/entities/instrument/api"
 import { usePortfolios } from "@/entities/portfolio/api"
 import { useI18n } from "@/shared/i18n/provider"
+import { currencyOrDash, percentPointsOrDash, toneOf } from "@/shared/lib/display"
 import { AsyncState, Metric, PageHeader } from "@/shared/ui/primitives"
 import { MarketTicker } from "@/widgets/market-ticker/market-ticker"
 
@@ -36,9 +36,9 @@ export function DashboardPage() {
   const gainers = overview.data?.gainers ?? []
   const losers = overview.data?.losers ?? []
 
-  const topPortfolios = [...(portfolios.data?.items ?? [])]
-    .sort((a, b) => Number(b.valuation?.market_value ?? 0) - Number(a.valuation?.market_value ?? 0))
-    .slice(0, 6)
+  const topPortfolios = [...(portfolios.data?.items ?? [])].sort(
+    (a, b) => Number(b.valuation?.market_value ?? 0) - Number(a.valuation?.market_value ?? 0),
+  )
 
   return (
     <main className="shell page">
@@ -53,7 +53,7 @@ export function DashboardPage() {
       <section className="metric-grid" aria-label={t("dashboard.kicker")}>
         <Metric
           label={t("dashboard.aum")}
-          value={formatCurrency(book.data?.total_market_value ?? 0, "BRL", locale)}
+          value={currencyOrDash(book.data?.total_market_value, "BRL", locale)}
         />
         <Metric
           label={t("dashboard.portfolios")}
@@ -112,19 +112,20 @@ export function DashboardPage() {
               <LedgerBody>
                 {[...gainers, ...losers].slice(0, 8).map((quote) => {
                   const change = quote.change_percent ?? 0
+                  const icon = change >= 0 ? <TrendUp size={13} /> : <TrendDown size={13} />
                   return (
                     <LedgerRow key={quote.symbol}>
                       <LedgerCell>
                         <span className="flex items-center gap-2">
-                          {change >= 0 ? <TrendUp size={13} /> : <TrendDown size={13} />}
+                          {icon}
                           {quote.symbol}
                         </span>
                       </LedgerCell>
                       <LedgerCell numeric>
                         {formatCurrency(quote.price, quote.currency, locale)}
                       </LedgerCell>
-                      <LedgerCell numeric className={change >= 0 ? "pos" : "neg"}>
-                        {formatPercent(change / 100, locale)}
+                      <LedgerCell numeric className={toneOf(change) ?? ""}>
+                        {percentPointsOrDash(change, locale)}
                       </LedgerCell>
                     </LedgerRow>
                   )
@@ -158,7 +159,7 @@ export function DashboardPage() {
             <LedgerBody>
               {topPortfolios.map((portfolio) => {
                 const valuation = portfolio.valuation
-                const result = valuation ? Number(valuation.net_result) : 0
+                const result = valuation?.net_result
                 return (
                   <LedgerRow key={portfolio.id}>
                     <LedgerCell>
@@ -167,25 +168,18 @@ export function DashboardPage() {
                       </a>
                     </LedgerCell>
                     <LedgerCell numeric>
-                      {formatCurrency(
-                        valuation?.market_value ?? 0,
-                        portfolio.base_currency,
-                        locale,
-                      )}
+                      {currencyOrDash(valuation?.market_value, portfolio.base_currency, locale)}
                     </LedgerCell>
-                    <LedgerCell numeric className={result >= 0 ? "pos" : "neg"}>
-                      {formatCurrency(result, portfolio.base_currency, locale)}
+                    <LedgerCell numeric className={toneOf(result) ?? ""}>
+                      {currencyOrDash(result, portfolio.base_currency, locale)}
                     </LedgerCell>
                     <LedgerCell numeric>
-                      {valuation?.return_percent !== null && valuation?.return_percent !== undefined
-                        ? formatPercent(Number(valuation.return_percent) / 100, locale)
-                        : "—"}
+                      {percentPointsOrDash(valuation?.return_percent, locale)}
                     </LedgerCell>
                     <LedgerCell>
                       <Sparkline
-                        data={(valuation?.positions ?? []).map(
-                          (position: { market_value: string | null }) =>
-                            Number(position.market_value ?? 0),
+                        data={(valuation?.positions ?? []).map((position) =>
+                          Number(position.market_value ?? 0),
                         )}
                         width={80}
                         height={20}

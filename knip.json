@@ -1,0 +1,16 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    "apps/web": {
+      "entry": ["src/test/msw.ts", "src/**/*.test.{ts,tsx}"],
+      "project": ["src/**/*.{ts,tsx,css}"],
+      "ignoreDependencies": ["tailwindcss"]
+    },
+    "packages/ui": {
+      "project": ["src/**/*.{ts,tsx,css}"]
+    },
+    "packages/contracts": {}
+  },
+  "ignoreDependencies": ["vite"],
+  "ignoreBinaries": ["uv"]
+}

@@ -1,7 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-
 import { I18nProvider } from "@/shared/i18n/provider"
 import { LoginForm } from "./login-form"
 

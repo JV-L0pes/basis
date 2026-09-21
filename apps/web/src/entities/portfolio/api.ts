@@ -3,14 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { api, unwrap } from "@/shared/api/client"
 
-export type Portfolio = components["schemas"]["PortfolioResponse"]
-export type PortfolioList = components["schemas"]["PortfolioListResponse"]
-export type Transaction = components["schemas"]["TransactionResponse"]
-export type PortfolioValuation = components["schemas"]["PortfolioValuationResponse"]
-export type Performance = components["schemas"]["PerformanceResponse"]
-export type AllocationAnalysis = components["schemas"]["AllocationAnalysisResponse"]
-
-export const portfolioKeys = {
+const portfolioKeys = {
   all: ["portfolios"] as const,
   list: (filters: { clientId?: string } = {}) => ["portfolios", "list", filters] as const,
   detail: (id: string) => ["portfolios", "detail", id] as const,

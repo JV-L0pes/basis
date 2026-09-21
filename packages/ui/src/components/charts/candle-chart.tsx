@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react"
 
 import { cn } from "../../lib/utils"
 
-export type Candle = {
+export interface Candle {
   time: string
   open: number
   high: number
@@ -16,7 +16,7 @@ export type Candle = {
   close: number
 }
 
-export type CandleChartProps = {
+export interface CandleChartProps {
   data: Candle[]
   height?: number
   className?: string

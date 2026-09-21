@@ -12,7 +12,7 @@ import { dictionaries, type Language, type MessageKey } from "./messages"
 
 const STORAGE_KEY = "basis-lang"
 
-type I18nValue = {
+interface I18nValue {
   language: Language
   locale: string
   setLanguage: (language: Language) => void
@@ -25,7 +25,7 @@ function readInitialLanguage(): Language {
   if (typeof localStorage === "undefined") return "pt"
   const stored = localStorage.getItem(STORAGE_KEY)
   if (stored === "pt" || stored === "en") return stored
-  return navigator.language?.toLowerCase().startsWith("en") ? "en" : "pt"
+  return navigator.language.toLowerCase().startsWith("en") ? "en" : "pt"
 }
 
 function interpolate(template: string, params?: Record<string, string | number>): string {
@@ -47,7 +47,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, [language])
 
-  const setLanguage = useCallback((next: Language) => setLanguageState(next), [])
+  const setLanguage = useCallback((next: Language) => {
+    setLanguageState(next)
+  }, [])
 
   const value = useMemo<I18nValue>(
     () => ({
@@ -66,8 +68,4 @@ export function useI18n(): I18nValue {
   const value = useContext(I18nContext)
   if (!value) throw new Error("useI18n must be used inside I18nProvider")
   return value
-}
-
-export function useT() {
-  return useI18n().t
 }

@@ -17,7 +17,7 @@ import {
   toast,
 } from "@basis/ui"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 
 import { useInstruments } from "@/entities/instrument/api"
@@ -64,6 +64,8 @@ export function RecordTransactionDialog({
       notes: "",
     },
   })
+  const symbol = useWatch({ control: form.control, name: "symbol" })
+  const kind = useWatch({ control: form.control, name: "kind" })
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
@@ -74,7 +76,7 @@ export function RecordTransactionDialog({
         quantity: String(values.quantity),
         price: String(values.price),
         fees: values.fees ? String(values.fees) : undefined,
-        notes: values.notes || undefined,
+        notes: values.notes ?? undefined,
       })
       toast.success(t("portfolios.transactionRecorded"))
       form.reset({ ...form.getValues(), symbol: "", quantity: 1, price: 0, fees: 0, notes: "" })
@@ -95,7 +97,7 @@ export function RecordTransactionDialog({
         <form onSubmit={onSubmit} noValidate className="form-grid two">
           <Field label={t("common.symbol")} htmlFor="tx-symbol" required>
             <Select
-              value={form.watch("symbol")}
+              value={symbol}
               onValueChange={(value) => form.setValue("symbol", value, { shouldValidate: true })}
             >
               <SelectTrigger id="tx-symbol">
@@ -113,7 +115,7 @@ export function RecordTransactionDialog({
 
           <Field label={t("common.type")} htmlFor="tx-kind">
             <Select
-              value={form.watch("kind")}
+              value={kind}
               onValueChange={(value) => form.setValue("kind", value as FormValues["kind"])}
             >
               <SelectTrigger id="tx-kind">

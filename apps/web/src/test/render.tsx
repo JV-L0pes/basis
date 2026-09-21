@@ -6,7 +6,7 @@ import { expect } from "vitest"
 
 import { I18nProvider } from "@/shared/i18n/provider"
 
-export function createTestQueryClient(): QueryClient {
+function createTestQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: { retry: false, gcTime: 0, staleTime: 0 },

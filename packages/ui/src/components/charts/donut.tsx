@@ -1,10 +1,14 @@
 import { useId } from "react"
+
 import { formatCurrency } from "../../lib/format"
 import { cn } from "../../lib/utils"
 
-export type DonutSlice = { label: string; value: number }
+export interface DonutSlice {
+  label: string
+  value: number
+}
 
-export type DonutProps = {
+export interface DonutProps {
   data: DonutSlice[]
   size?: number
   thickness?: number
@@ -48,7 +52,17 @@ export function Donut({
 
   const radius = (size - thickness) / 2
   const circumference = 2 * Math.PI * radius
-  let offset = 0
+
+  // Prefix sums keep the arc computation pure (no mutation during render).
+  const arcs = slices.map((slice, index) => {
+    const startFraction = slices.slice(0, index).reduce((sum, item) => sum + item.value, 0) / total
+    return {
+      slice,
+      dash: (slice.value / total) * circumference,
+      offset: startFraction * circumference,
+      colour: INK_SHADES[index % INK_SHADES.length],
+    }
+  })
 
   return (
     <div className={cn("flex items-center gap-6", className)}>
@@ -61,23 +75,17 @@ export function Donut({
       >
         <title id={titleId}>Alocação por classe de ativo</title>
         <g transform={`translate(${size / 2}, ${size / 2}) rotate(-90)`}>
-          {slices.map((slice, index) => {
-            const fraction = slice.value / total
-            const dash = fraction * circumference
-            const circle = (
-              <circle
-                key={slice.label}
-                r={radius}
-                fill="none"
-                stroke={INK_SHADES[index % INK_SHADES.length]}
-                strokeWidth={thickness}
-                strokeDasharray={`${dash} ${circumference - dash}`}
-                strokeDashoffset={-offset}
-              />
-            )
-            offset += dash
-            return circle
-          })}
+          {arcs.map((arc) => (
+            <circle
+              key={arc.slice.label}
+              r={radius}
+              fill="none"
+              stroke={arc.colour}
+              strokeWidth={thickness}
+              strokeDasharray={`${arc.dash} ${circumference - arc.dash}`}
+              strokeDashoffset={-arc.offset}
+            />
+          ))}
         </g>
         <text
           x="50%"

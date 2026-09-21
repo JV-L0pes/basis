@@ -25,7 +25,7 @@ describe("DashboardPage", () => {
     const { container } = renderWithProviders(<DashboardPage />)
     await screen.findAllByText(/168\.000,00/)
 
-    const metrics = container.querySelector(".metric-grid") as HTMLElement
+    const metrics = container.querySelector<HTMLElement>(".metric-grid")!
     expect(within(metrics).getByText(/SELIC/i)).toBeInTheDocument()
     expect(within(metrics).getByText(/10,75/)).toBeInTheDocument()
   })

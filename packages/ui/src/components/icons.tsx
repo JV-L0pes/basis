@@ -1,6 +1,9 @@
 import type { SVGProps } from "react"
 
-type IconProps = { size?: number; className?: string }
+interface IconProps {
+  size?: number
+  className?: string
+}
 
 function Svg({ size = 16, className, children, ...rest }: IconProps & SVGProps<SVGSVGElement>) {
   return (

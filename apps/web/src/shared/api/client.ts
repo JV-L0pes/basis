@@ -1,13 +1,34 @@
 import type { components, paths } from "@basis/contracts"
 import createClient from "openapi-fetch"
 
-import { useSessionStore } from "@/entities/session/store"
 import { ApiError, isProblem, type ProblemDetails } from "@/shared/api/problem"
 import { env } from "@/shared/config/env"
 
+type AuthResponse = components["schemas"]["AuthResponse"]
+
 const RETRY_HEADER = "x-basis-retry"
 
-async function refreshAccessToken(): Promise<string | null> {
+/**
+ * Auth wiring injected by the application layer (`app/providers`). Keeping it as
+ * a bridge lets `shared` stay free of `entities` imports, as FSD requires.
+ */
+interface AuthBridge {
+  getAccessToken: () => string | null
+  onSession: (session: AuthResponse) => void
+  onSignedOut: () => void
+}
+
+const bridge: AuthBridge = {
+  getAccessToken: () => null,
+  onSession: () => undefined,
+  onSignedOut: () => undefined,
+}
+
+export function configureAuth(next: Partial<AuthBridge>): void {
+  Object.assign(bridge, next)
+}
+
+export async function refreshAccessToken(): Promise<string | null> {
   try {
     const response = await fetch(`${env.apiUrl}/api/v1/auth/refresh`, {
       method: "POST",
@@ -16,12 +37,9 @@ async function refreshAccessToken(): Promise<string | null> {
       body: "{}",
     })
     if (!response.ok) return null
-    const body = (await response.json()) as components["schemas"]["AuthResponse"]
-    useSessionStore.getState().setSession({
-      user: body.user,
-      accessToken: body.token.access_token,
-      expiresIn: body.token.expires_in,
-    })
+    const payload: unknown = await response.json()
+    const body = payload as AuthResponse
+    bridge.onSession(body)
     return body.token.access_token
   } catch {
     return null
@@ -43,16 +61,16 @@ async function authAwareFetch(
     if (retried) headers.set(RETRY_HEADER, "1")
     return source
       ? new Request(source, { headers, credentials: "include" })
-      : new Request(input as string | URL, { ...init, headers, credentials: "include" })
+      : new Request(input, { ...init, headers, credentials: "include" })
   }
 
-  let response = await fetch(build(useSessionStore.getState().accessToken, false))
+  let response = await fetch(build(bridge.getAccessToken(), false))
   if (response.status === 401) {
     const token = await refreshAccessToken()
     if (token) {
       response = await fetch(build(token, true))
     } else {
-      useSessionStore.getState().clear()
+      bridge.onSignedOut()
     }
   }
   return response
@@ -92,5 +110,3 @@ export async function unwrap<T>(
   }
   return data
 }
-
-export { refreshAccessToken }

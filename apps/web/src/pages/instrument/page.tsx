@@ -1,9 +1,11 @@
-import { AreaChart, Badge, formatCurrency, formatPercent, Skeleton, Sparkline } from "@basis/ui"
+import { AreaChart, Badge, formatCurrency, Skeleton, Sparkline } from "@basis/ui"
 import { useParams } from "@tanstack/react-router"
 import { useState } from "react"
 
 import { useHistory, useInstrument, useQuote } from "@/entities/instrument/api"
+import type { MessageKey } from "@/shared/i18n/messages"
 import { useI18n } from "@/shared/i18n/provider"
+import { percentPointsOrDash, toneOf } from "@/shared/lib/display"
 import { Metric, PageHeader } from "@/shared/ui/primitives"
 
 const PERIODS = [
@@ -24,6 +26,12 @@ export function InstrumentPage() {
   const points = history.data ?? []
   const closes = points.map((point) => Number(point.close))
   const change = quote.data?.change_percent ?? null
+  const firstPoint = points[0]
+  const lastPoint = points[points.length - 1]
+
+  const classKey: MessageKey = instrument.data
+    ? (`assetClass.${instrument.data.asset_class}` as MessageKey)
+    : "markets.kicker"
 
   return (
     <main className="shell page">
@@ -31,16 +39,12 @@ export function InstrumentPage() {
         <Skeleton className="h-12 w-72" />
       ) : (
         <PageHeader
-          kicker={
-            instrument.data
-              ? t(`assetClass.${instrument.data.asset_class}` as "assetClass.equity")
-              : t("markets.kicker")
-          }
+          kicker={t(classKey)}
           title={instrument.data ? `${instrument.data.symbol} · ${instrument.data.name}` : symbol}
           subtitle={instrument.data?.isin ? `ISIN ${instrument.data.isin}` : undefined}
           actions={
             quote.data ? (
-              <Badge variant={change !== null && change >= 0 ? "positive" : "negative"}>
+              <Badge variant={toneOf(change) === "neg" ? "negative" : "positive"}>
                 {quote.data.source} · {quote.data.as_of.slice(0, 10)}
               </Badge>
             ) : null
@@ -59,17 +63,13 @@ export function InstrumentPage() {
         />
         <Metric
           label={t("markets.change")}
-          value={change !== null ? formatPercent(change / 100, locale) : "—"}
-          tone={change !== null ? (change >= 0 ? "pos" : "neg") : null}
+          value={percentPointsOrDash(change, locale)}
+          tone={toneOf(change)}
         />
         <Metric
           label={t("markets.history")}
-          value={`${points.length}`}
-          delta={
-            points.length > 1
-              ? `${points[0]?.date} → ${points[points.length - 1]?.date}`
-              : undefined
-          }
+          value={String(points.length)}
+          delta={firstPoint && lastPoint ? `${firstPoint.date} → ${lastPoint.date}` : undefined}
         />
         <div className="metric">
           <span className="metric-label">{t("markets.change")}</span>
@@ -104,7 +104,7 @@ export function InstrumentPage() {
                 date: point.date,
                 value: Number(point.close),
               }))}
-              currency={points[0]?.currency ?? "BRL"}
+              currency={firstPoint?.currency ?? "BRL"}
               locale={locale}
             />
           )}

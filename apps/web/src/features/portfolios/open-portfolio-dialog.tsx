@@ -16,7 +16,7 @@ import {
   toast,
 } from "@basis/ui"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 
 import { useClients } from "@/entities/client/api"
@@ -49,6 +49,8 @@ export function OpenPortfolioDialog({
     resolver: zodResolver(schema),
     defaultValues: { clientId: defaultClientId ?? "", name: "", baseCurrency: "BRL" },
   })
+  const clientId = useWatch({ control: form.control, name: "clientId" })
+  const baseCurrency = useWatch({ control: form.control, name: "baseCurrency" })
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
@@ -76,7 +78,7 @@ export function OpenPortfolioDialog({
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
           <Field label={t("portfolios.client")} htmlFor="portfolio-client" required>
             <Select
-              value={form.watch("clientId")}
+              value={clientId}
               onValueChange={(value) => form.setValue("clientId", value, { shouldValidate: true })}
             >
               <SelectTrigger id="portfolio-client">
@@ -103,7 +105,7 @@ export function OpenPortfolioDialog({
 
           <Field label={t("portfolios.currency")} htmlFor="portfolio-currency">
             <Select
-              value={form.watch("baseCurrency")}
+              value={baseCurrency}
               onValueChange={(value) => form.setValue("baseCurrency", value)}
             >
               <SelectTrigger id="portfolio-currency">

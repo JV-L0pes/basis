@@ -13,7 +13,6 @@ import {
 import { ArrowUpRight, CircleHalf } from "@basis/ui/icons"
 import { useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
-
 import { logout } from "@/entities/session/api"
 import { useSessionStore } from "@/entities/session/store"
 import { useI18n } from "@/shared/i18n/provider"
@@ -96,7 +95,9 @@ export function TopBar() {
               type="button"
               className="sq md:hidden"
               aria-label={t("nav.menu")}
-              onClick={() => setMenuOpen(true)}
+              onClick={() => {
+                setMenuOpen(true)
+              }}
             >
               ≡
             </button>
@@ -113,7 +114,9 @@ export function TopBar() {
                     key={item.to}
                     href={item.to}
                     className="text-2xl font-extrabold tracking-[-0.03em]"
-                    onClick={() => setMenuOpen(false)}
+                    onClick={() => {
+                      setMenuOpen(false)
+                    }}
                   >
                     {t(item.key)}
                   </a>

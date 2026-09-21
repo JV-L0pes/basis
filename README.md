@@ -20,7 +20,7 @@ modular com frontend próprio.
 | **Mercado** | Catálogo de instrumentos (ISIN com Luhn, MIC ISO 10383, CFI ISO 10962), cotações com cache TTL e fallback determinístico, séries macro do BCB (Selic, CDI, IPCA, USD/BRL), candles/histórico |
 | **Analytics** | TWR, XIRR, volatilidade anualizada, Sharpe, beta, drawdown máximo, VaR 95%, alocação atual vs. alvo, drift em basis points e plano de rebalanceamento |
 | **Design** | Sistema "Ink" (tipografia editorial, hairlines, zero sombras) em `@basis/ui`, tema claro/escuro, i18n PT/EN com paridade tipada |
-| **Qualidade** | Ruff + Bandit + BLE/TRY (Python), mypy strict, import-linter (fronteiras entre contextos), Biome + ESLint type-aware + Knip (TypeScript), pytest e Vitest |
+| **Qualidade** | Ruff (com bandit/S/B/TRY) + mypy strict + import-linter (fronteiras entre contextos) no Python; Biome (formatação/lint) + ESLint type-aware (sonarjs, jsx-a11y, react-hooks, ciclos de import, regras de FSD por camada) + Knip (código morto) no TypeScript |
 
 ---
 
@@ -113,6 +113,8 @@ docker compose --profile full up --build   # web em http://localhost:5173
 | `pnpm dev` | Frontend + tasks do Turborepo em modo dev |
 | `pnpm build` / `pnpm typecheck` / `pnpm test` / `pnpm lint` | Pipeline completo do frontend |
 | `pnpm check` | Biome (format + lint) em todo o monorepo |
+| `pnpm lint:eslint` | ESLint type-aware (a11y, segurança, FSD, testes) |
+| `pnpm knip` | Detecção de código e dependências mortas |
 | `pnpm py:lint` / `pnpm py:typecheck` / `pnpm py:test` | Ruff, mypy e pytest do backend |
 | `pnpm db:migrate` / `pnpm db:seed` | Alembic e seed (use `-- --demo` para dados de exemplo) |
 | `pnpm openapi:export` / `pnpm openapi:check` | Exporta/valida o contrato consumido pelo frontend |

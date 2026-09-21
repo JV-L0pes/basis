@@ -4,6 +4,8 @@
  */
 
 type Numeric = number | string | null | undefined
+type DateInput = Date | string | null | undefined
+type Formatter = (value: Numeric) => string
 
 const numberFormats = new Map<string, Intl.NumberFormat>()
 const dateFormats = new Map<string, Intl.DateTimeFormat>()
@@ -93,21 +95,21 @@ function toDate(value: Date | string): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
-export function formatDate(value: Date | string | null | undefined, locale = "pt-BR"): string {
+export function formatDate(value: DateInput, locale = "pt-BR"): string {
   if (!value) return "—"
   const date = toDate(value)
   if (!date) return "—"
   return dateFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).format(date)
 }
 
-export function formatShortDate(value: Date | string | null | undefined, locale = "pt-BR"): string {
+export function formatShortDate(value: DateInput, locale = "pt-BR"): string {
   if (!value) return "—"
   const date = toDate(value)
   if (!date) return "—"
   return dateFormat(locale, { day: "2-digit", month: "short" }).format(date)
 }
 
-export function formatDateTime(value: Date | string | null | undefined, locale = "pt-BR"): string {
+export function formatDateTime(value: DateInput, locale = "pt-BR"): string {
   if (!value) return "—"
   const date = toDate(value)
   if (!date) return "—"
@@ -120,7 +122,7 @@ export function formatDateTime(value: Date | string | null | undefined, locale =
   }).format(date)
 }
 
-export function formatSigned(value: Numeric, formatter: (v: Numeric) => string): string {
+export function formatSigned(value: Numeric, formatter: Formatter): string {
   const parsed = numeric(value)
   if (parsed === null) return "—"
   const formatted = formatter(parsed)

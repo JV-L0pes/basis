@@ -18,7 +18,7 @@ describe("PortfolioPage", () => {
     const { container } = renderWithProviders(<PortfolioPage />)
 
     expect(await screen.findByRole("heading", { name: "Carteira Ana" })).toBeInTheDocument()
-    const metrics = container.querySelector(".metric-grid") as HTMLElement
+    const metrics = container.querySelector<HTMLElement>(".metric-grid")!
     expect(within(metrics).getByText("Valor de mercado")).toBeInTheDocument()
     expect(within(metrics).getByText(/12\.000,00/)).toBeInTheDocument()
     expect(within(metrics).getByText(/10\.000,00/)).toBeInTheDocument()

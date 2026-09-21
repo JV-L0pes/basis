@@ -6,6 +6,7 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router"
+
 import { useSessionStore } from "@/entities/session/store"
 import { ClientsPage } from "@/pages/clients/page"
 import { DashboardPage } from "@/pages/dashboard/page"
@@ -16,7 +17,7 @@ import { PortfolioPage } from "@/pages/portfolio/page"
 import { PortfoliosPage } from "@/pages/portfolios/page"
 import { sessionBootstrap } from "@/shared/session-bootstrap"
 import { LanguageSwitch, useThemeToggle } from "@/widgets/app-shell/controls"
-import { TopBar } from "@/widgets/app-shell/shell"
+import { AppFooter, TopBar } from "@/widgets/app-shell/shell"
 
 function NotFound() {
   const toggleTheme = useThemeToggle()
@@ -44,6 +45,7 @@ function AppLayout() {
     <>
       <TopBar />
       <Outlet />
+      <AppFooter />
     </>
   )
 }
@@ -55,6 +57,7 @@ const rootRoute = createRootRoute({
     await sessionBootstrap.promise
     const authenticated = useSessionStore.getState().isAuthenticated()
     if (!authenticated && location.pathname !== "/login") {
+      // eslint-disable-next-line @typescript-eslint/only-throw-error -- TanStack Router redirects are control flow, not errors
       throw redirect({ to: "/login" })
     }
   },

@@ -1,33 +1,21 @@
 import { useCallback, useSyncExternalStore } from "react"
 
 /**
- * Subscribes to a CSS media query. SSR-safe: the server snapshot is always
- * `false`, and the first client render subscribes before paint.
+ * Reactive media query backed by `matchMedia` and `useSyncExternalStore`, which
+ * keeps React in sync with the external store without setting state in effects.
  */
 export function useMediaQuery(query: string): boolean {
   const subscribe = useCallback(
-    (onStoreChange: () => void) => {
-      if (typeof window === "undefined" || !window.matchMedia) return () => {}
-      const list = window.matchMedia(query)
-      list.addEventListener("change", onStoreChange)
-      return () => list.removeEventListener("change", onStoreChange)
+    (onChange: () => void) => {
+      const media = window.matchMedia(query)
+      media.addEventListener("change", onChange)
+      return () => media.removeEventListener("change", onChange)
     },
     [query],
   )
 
-  const getSnapshot = useCallback(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return false
-    return window.matchMedia(query).matches
-  }, [query])
+  const getSnapshot = useCallback(() => window.matchMedia(query).matches, [query])
+  const getServerSnapshot = useCallback(() => false, [])
 
-  return useSyncExternalStore(subscribe, getSnapshot, () => false)
-}
-
-/** `< 960px`, the Ink shell breakpoint used by the top bar. */
-export function useIsMobile() {
-  return useMediaQuery("(max-width: 959px)")
-}
-
-export function usePrefersReducedMotion() {
-  return useMediaQuery("(prefers-reduced-motion: reduce)")
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }

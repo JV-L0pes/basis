@@ -1,10 +1,14 @@
 import { useId, useMemo, useState } from "react"
+
 import { formatCurrency, formatShortDate } from "../../lib/format"
 import { cn } from "../../lib/utils"
 
-export type AreaChartPoint = { date: string; value: number }
+export interface AreaChartPoint {
+  date: string
+  value: number
+}
 
-export type AreaChartProps = {
+export interface AreaChartProps {
   data: AreaChartPoint[]
   height?: number
   currency?: string
@@ -37,7 +41,7 @@ export function AreaChart({
   const series = useMemo(
     () =>
       data
-        .map((point) => ({ date: point.date, value: Number(point.value) }))
+        .map((point) => ({ date: point.date, value: point.value }))
         .filter((point) => Number.isFinite(point.value)),
     [data],
   )
@@ -110,9 +114,15 @@ export function AreaChart({
             : undefined
         }
         onMouseMove={selectFromPointer}
-        onMouseLeave={() => setActive(null)}
-        onFocus={() => setActive(activeIndex ?? series.length - 1)}
-        onBlur={() => setActive(null)}
+        onMouseLeave={() => {
+          setActive(null)
+        }}
+        onFocus={() => {
+          setActive(activeIndex ?? series.length - 1)
+        }}
+        onBlur={() => {
+          setActive(null)
+        }}
         onKeyDown={(event) => {
           if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return
           event.preventDefault()

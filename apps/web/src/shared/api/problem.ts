@@ -1,12 +1,12 @@
 /** RFC 9457 problem details, as produced by the Basis API. */
 
-export type ValidationIssue = {
+interface ValidationIssue {
   loc?: string[]
   msg?: string
   type?: string
 }
 
-export type ProblemDetails = {
+export interface ProblemDetails {
   type: string
   title: string
   status: number

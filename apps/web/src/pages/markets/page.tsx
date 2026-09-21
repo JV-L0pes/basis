@@ -1,6 +1,5 @@
 import {
   Badge,
-  formatPercent,
   Ledger,
   LedgerBody,
   LedgerCell,
@@ -13,6 +12,7 @@ import { useMemo, useState } from "react"
 
 import { useInstruments, useMarketOverview } from "@/entities/instrument/api"
 import { useI18n } from "@/shared/i18n/provider"
+import { percentPointsOrDash, toneOf } from "@/shared/lib/display"
 import { AsyncState, PageHeader } from "@/shared/ui/primitives"
 
 const CLASSES = ["equity", "fixed_income", "fund", "etf", "real_estate", "crypto"] as const
@@ -25,10 +25,10 @@ export function MarketsPage() {
   const instruments = useInstruments({ query, assetClass: assetClass || undefined })
   const overview = useMarketOverview()
 
-  const quoteBySymbol = useMemo(() => {
+  const changeBySymbol = useMemo(() => {
     const map = new Map<string, number>()
     for (const quote of overview.data?.quotes ?? []) {
-      map.set(quote.symbol, quote.change_percent ?? 0)
+      if (quote.change_percent != null) map.set(quote.symbol, quote.change_percent)
     }
     return map
   }, [overview.data])
@@ -90,7 +90,8 @@ export function MarketsPage() {
           </LedgerHead>
           <LedgerBody>
             {items.map((instrument) => {
-              const change = quoteBySymbol.get(instrument.symbol)
+              const change = changeBySymbol.get(instrument.symbol)
+              const reference = instrument.isin ? ` · ${instrument.isin}` : ""
               return (
                 <LedgerRow key={instrument.id}>
                   <LedgerCell>
@@ -107,14 +108,11 @@ export function MarketsPage() {
                   <LedgerCell>
                     <span className="mono text-ash">
                       {instrument.currency}
-                      {instrument.isin ? ` · ${instrument.isin}` : ""}
+                      {reference}
                     </span>
                   </LedgerCell>
-                  <LedgerCell
-                    numeric
-                    className={change !== undefined ? (change >= 0 ? "pos" : "neg") : ""}
-                  >
-                    {change !== undefined ? formatPercent(change / 100, locale) : "—"}
+                  <LedgerCell numeric className={toneOf(change) ?? ""}>
+                    {percentPointsOrDash(change, locale)}
                   </LedgerCell>
                 </LedgerRow>
               )

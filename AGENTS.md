@@ -12,6 +12,8 @@ monorepo inteiro; regras específicas estão nos READMEs de cada pacote.
 pnpm install
 pnpm turbo run lint typecheck test build
 pnpm check                 # biome format+lint em todo o monorepo
+pnpm lint:eslint           # eslint type-aware (a11y, sonarjs, FSD, ciclos)
+pnpm knip                  # código e dependências mortas
 pnpm --filter @basis/ui test
 pnpm --filter @basis/web dev
 
@@ -34,7 +36,8 @@ Para subir a API no Windows use `uv run --directory apps/api python -m basis`
 (psycopg async exige event loop `Selector`).
 
 **Antes de considerar qualquer tarefa concluída:** `ruff`, `mypy`, `lint-imports`
-e `pytest` verdes no backend; `biome`, `typecheck` e `vitest` verdes no frontend.
+e `pytest` verdes no backend; `biome`, `lint:eslint`, `knip`, `typecheck` e
+`vitest` verdes no frontend.
 
 ---
 
@@ -80,7 +83,10 @@ packages/contracts               openapi.json + tipos gerados
 ## Regras do frontend
 
 1. **FSD.** `shared` não importa de camadas superiores; `entities` não importam
-   `features`/`pages`; `pages` compõem `widgets`/`features`/`entities`.
+   `features`/`pages`; `pages` compõem `widgets`/`features`/`entities`. O ESLint
+   reprova violações (`no-restricted-imports` por camada). Quando `shared`
+   precisar de algo de camada superior (ex.: token de sessão), injete pelo
+   `app` (ver `configureAuth` em `shared/api/client.ts`).
 2. **Todo dado do servidor** passa por TanStack Query; `shared/api/client.ts`
    cuida de token e refresh. Não use `fetch` direto em componentes.
 3. **Formulários** com react-hook-form + zod; mensagens de erro sempre pelo `t()`.

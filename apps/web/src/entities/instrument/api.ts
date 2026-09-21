@@ -3,14 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { api, unwrap } from "@/shared/api/client"
 
-export type Instrument = components["schemas"]["InstrumentResponse"]
-export type InstrumentList = components["schemas"]["InstrumentListResponse"]
-export type Quote = components["schemas"]["QuoteResponse"]
-export type PricePoint = components["schemas"]["PricePointResponse"]
-export type MacroPoint = components["schemas"]["MacroPointResponse"]
-export type MarketOverview = components["schemas"]["MarketOverviewResponse"]
-
-export const marketKeys = {
+const marketKeys = {
   instruments: (query?: string, assetClass?: string) =>
     ["instruments", { query, assetClass }] as const,
   instrument: (symbol: string) => ["instruments", symbol] as const,
@@ -28,10 +21,8 @@ export function useInstruments(filters: { query?: string; assetClass?: string } 
         api.GET("/api/v1/instruments", {
           params: {
             query: {
-              query: filters.query || undefined,
-              asset_class:
-                (filters.assetClass as components["schemas"]["AssetClass"] | undefined) ||
-                undefined,
+              query: filters.query,
+              asset_class: filters.assetClass as components["schemas"]["AssetClass"] | undefined,
               limit: 50,
             },
           },
@@ -39,7 +30,6 @@ export function useInstruments(filters: { query?: string; assetClass?: string } 
       ),
   })
 }
-
 export function useInstrument(symbol: string) {
   return useQuery({
     queryKey: marketKeys.instrument(symbol),
@@ -75,19 +65,6 @@ export function useHistory(symbol: string, days = 90) {
         }),
       ),
     enabled: Boolean(symbol),
-  })
-}
-
-export function useMacroSeries(code: string) {
-  return useQuery({
-    queryKey: marketKeys.macro(code),
-    queryFn: () =>
-      unwrap(
-        api.GET("/api/v1/market/macro/{code}", {
-          params: { path: { code: code as "selic" } },
-        }),
-      ),
-    enabled: Boolean(code),
   })
 }
 

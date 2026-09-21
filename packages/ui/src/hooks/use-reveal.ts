@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 
-export interface UseRevealOptions {
+interface UseRevealOptions {
   /** Selector of the elements to reveal. */
   selector?: string
   /** IntersectionObserver threshold. */
