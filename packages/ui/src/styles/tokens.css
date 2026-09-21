@@ -1,0 +1,154 @@
+/*
+ * Ink — the Basis design system (port of the JV-L0pes portfolio language).
+ * Typography carries the page; colour is rationed to the value axis. One hue
+ * only, gold, reserved for live status and outcomes. No shadows, no gradients,
+ * no radius except pills.
+ */
+
+:root {
+  --paper: #fbfbf9;
+  --ink: #0d0d0c;
+  --ash: #75736d;
+  --rule: #dfddd6;
+  --gold: #8a6b00;
+  --gold-fill: #f3ca4d;
+  --gold-invert: #f3ca4d;
+  --bar-bg: rgba(251, 251, 249, 0.92);
+  --hover-bg: #f5f4f0;
+  --close-muted: #8c8a84;
+
+  --positive: oklch(0.52 0.13 155);
+  --negative: oklch(0.53 0.19 27);
+  --warning: oklch(0.62 0.13 75);
+
+  --ease: cubic-bezier(0.76, 0, 0.24, 1);
+  --soft: cubic-bezier(0.16, 1, 0.3, 1);
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --paper: #0d0d0c;
+  --ink: #f4f3ef;
+  --ash: #918e86;
+  --rule: #2b2b27;
+  --gold: #f3ca4d;
+  --gold-fill: #f3ca4d;
+  --gold-invert: #8a6b00;
+  --bar-bg: rgba(13, 13, 12, 0.92);
+  --hover-bg: #171715;
+  --close-muted: #6e6c66;
+
+  --positive: oklch(0.72 0.14 155);
+  --negative: oklch(0.68 0.17 27);
+  --warning: oklch(0.78 0.12 75);
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ash: var(--ash);
+  --color-rule: var(--rule);
+  --color-gold: var(--gold);
+  --color-gold-fill: var(--gold-fill);
+
+  /* shadcn-compatible aliases, expressed in Ink terms */
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-muted: var(--hover-bg);
+  --color-muted-foreground: var(--ash);
+  --color-border: var(--rule);
+  --color-input: var(--rule);
+  --color-ring: var(--ink);
+  --color-accent: var(--gold);
+  --color-destructive: oklch(0.53 0.19 27);
+  --color-destructive-foreground: var(--paper);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+
+  --font-display: "Archivo Variable", "Archivo", sans-serif;
+  --font-mono: "Martian Mono", monospace;
+  --font-numeric: "Martian Mono", monospace;
+
+  --breakpoint-xs: 500px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  font-variation-settings: "wdth" 112;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--gold-fill);
+  color: #0d0d0c;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rule);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ash);
+}
+
+.tnum,
+.ledger td,
+.ledger th {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
