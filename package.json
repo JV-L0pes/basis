@@ -1,0 +1,41 @@
+{
+  "name": "basis",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Basis — investment management platform for the Brazilian financial market",
+  "license": "MIT",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "py:lint": "uv run --directory apps/api ruff check .",
+    "py:format": "uv run --directory apps/api ruff format .",
+    "py:typecheck": "uv run --directory apps/api mypy src tests",
+    "py:test": "uv run --directory apps/api pytest",
+    "py:test:unit": "uv run --directory apps/api pytest tests/unit -q",
+    "py:test:integration": "uv run --directory apps/api pytest tests/integration -q",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:migrate": "uv run --directory apps/api alembic upgrade head",
+    "db:revision": "uv run --directory apps/api alembic revision --autogenerate",
+    "db:seed": "uv run --directory apps/api python -m basis.scripts.seed",
+    "openapi:export": "uv run --directory apps/api python -m basis.scripts.export_openapi",
+    "openapi:check": "uv run --directory apps/api python -m basis.scripts.export_openapi --check",
+    "contracts:generate": "pnpm --filter @basis/contracts generate",
+    "start": "docker compose --profile full up --build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.4",
+    "turbo": "^2.5.8"
+  }
+}

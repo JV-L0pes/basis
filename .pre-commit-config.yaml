@@ -1,0 +1,32 @@
+# Basis — pre-commit gates. Install with: pre-commit install
+# Docs: https://pre-commit.com
+
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.28.0
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^apps/api/
+      - id: ruff-format
+        files: ^apps/api/
+
+  - repo: local
+    hooks:
+      - id: biome
+        name: biome check
+        entry: pnpm exec biome check --write --staged
+        language: system
+        pass_filenames: false
+        files: \.(ts|tsx|js|jsx|json|jsonc|css)$
+      - id: mypy
+        name: mypy (apps/api)
+        entry: uv run --directory apps/api mypy src
+        language: system
+        pass_filenames: false
+        files: ^apps/api/.*\.py$

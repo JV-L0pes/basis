@@ -1,89 +1,78 @@
-services:
-  # Banco MySQL
-  db:
-    image: mysql:8.0
-    container_name: ankaflow_db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: ankaflow_db
-      MYSQL_USER: anka_user
-      MYSQL_PASSWORD: anka123
-      TZ: America/Sao_Paulo
-    ports:
-      - "3306:3306"
-    volumes:
-      - ankaflow_mysql_data:/var/lib/mysql
-    networks:
-      - anka_network
-    command: >
-      --bind-address=0.0.0.0 --host_cache_size=0
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+name: basis
 
-  # Backend AnkaFlow
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: ankaflow_backend
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: basis_db
     restart: unless-stopped
     environment:
-      DATABASE_URL: "mysql://root:root123@db:3306/ankaflow_db"
-      PORT: 3001
-      NODE_ENV: production
+      POSTGRES_USER: basis
+      POSTGRES_PASSWORD: basis
+      POSTGRES_DB: basis
+      TZ: America/Sao_Paulo
+      PGTZ: America/Sao_Paulo
     ports:
-      - "3001:3001"
+      - "${BASIS_DB_PORT:-5432}:5432"
+    volumes:
+      - basis_pgdata:/var/lib/postgresql/data
+      - ./ops/postgres/init.sql:/docker-entrypoint-initdb.d/10-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U basis -d basis"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks:
+      - basis
+
+  api:
+    profiles: ["full"]
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: basis_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      BASIS_ENVIRONMENT: production
+      BASIS_DATABASE_URL: postgresql+psycopg://basis:basis@db:5432/basis
+      BASIS_CORS_ORIGINS: '["http://localhost:5173"]'
+    ports:
+      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - anka_network
-    command: >
-      sh -c "
-        echo 'Aguardando banco de dados...' &&
-        sleep 15 &&
-        echo 'Gerando cliente Prisma...' &&
-        npx prisma generate &&
-        echo 'Criando tabelas...' &&
-        npx prisma db push --accept-data-loss &&
-        echo 'Iniciando servidor...' &&
-        npm start
-      "
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - basis
 
-  # Frontend AnkaFlow
-  frontend:
+  web:
+    profiles: ["full"]
     build:
-      context: ./frontend
+      context: ./apps/web
       dockerfile: Dockerfile
-    container_name: ankaflow_frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    container_name: basis_web
     restart: unless-stopped
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001/api
-      NEXT_PUBLIC_APP_NAME: "AnkaFlow"
-      NEXT_PUBLIC_APP_VERSION: "1.0.0"
     ports:
-      - "3000:3000"
+      - "5173:8080"
     depends_on:
-      backend:
+      api:
         condition: service_healthy
     networks:
-      - anka_network
+      - basis
 
 volumes:
-  ankaflow_mysql_data:
-    driver: local
+  basis_pgdata:
+    name: basis_pgdata
 
 networks:
-  anka_network:
+  basis:
+    name: basis_network
     driver: bridge

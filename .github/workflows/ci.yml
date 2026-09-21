@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+    branches: [main, revamp]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  PYTHON_VERSION: "3.14"
+  PNPM_VERSION: "9.15.9"
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      api: ${{ steps.filter.outputs.api }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - "apps/web/**"
+              - "packages/**"
+              - "pnpm-lock.yaml"
+              - "pnpm-workspace.yaml"
+              - "biome.json"
+              - "tsconfig.base.json"
+              - ".github/workflows/ci.yml"
+            api:
+              - "apps/api/**"
+              - ".github/workflows/ci.yml"
+
+  web:
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm biome ci .
+      - run: pnpm turbo run lint typecheck test build
+
+  api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: basis
+          POSTGRES_PASSWORD: basis
+          POSTGRES_DB: basis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U basis"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      BASIS_ENVIRONMENT: test
+      BASIS_DATABASE_URL: postgresql+psycopg://basis:basis@localhost:5432/basis
+      BASIS_TEST_DATABASE_URL: postgresql+psycopg://basis:basis@localhost:5432/basis_test
+      BASIS_SECRET_KEY: ci-secret-key-not-used-in-production
+      BASIS_MARKET_DATA__ALLOW_LIVE_PROVIDERS: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "apps/api/uv.lock"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: uv sync --directory apps/api --frozen
+      - name: Create test database
+        run: PGPASSWORD=basis psql -h localhost -U basis -d basis -c "CREATE DATABASE basis_test OWNER basis;"
+      - name: Ruff (lint)
+        run: uv run --directory apps/api ruff check .
+      - name: Ruff (format)
+        run: uv run --directory apps/api ruff format --check .
+      - name: Mypy (types)
+        run: uv run --directory apps/api mypy src
+      - name: Import boundaries
+        run: uv run --directory apps/api lint-imports
+      - name: OpenAPI contract up to date
+        run: uv run --directory apps/api python -m basis.scripts.export_openapi --check
+      - name: Pytest
+        run: uv run --directory apps/api pytest --cov=basis --cov-report=term-missing --cov-report=xml
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Python dependency audit
+        run: |
+          uv export --directory apps/api --frozen --no-emit-project --format requirements-txt > /tmp/requirements.txt
+          uvx pip-audit -r /tmp/requirements.txt
