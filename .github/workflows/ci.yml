@@ -83,7 +83,7 @@ jobs:
       BASIS_MARKET_DATA__ALLOW_LIVE_PROVIDERS: "false"
     steps:
       - uses: actions/checkout@v7
-      -         uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10
         with:
           enable-cache: true
           cache-dependency-glob: "apps/api/uv.lock"
@@ -117,7 +117,7 @@ jobs:
         uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      -         uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10
       - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
