@@ -151,8 +151,8 @@ export function AppFooter() {
         </div>
         <div>
           <h4>{t("footer.version")}</h4>
-          <p className="mono">Alpha · 0.1.0</p>
-          <p className="mt-3">
+          <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+            <span className="mono">Alpha · 0.1.0</span>
             <a
               className="foot-link mono"
               href={`${env.apiUrl}/docs`}
@@ -161,7 +161,7 @@ export function AppFooter() {
             >
               {t("footer.api")}
             </a>
-          </p>
+          </div>
         </div>
       </div>
     </footer>
