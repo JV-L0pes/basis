@@ -69,7 +69,7 @@ function TopPortfoliosPanel({ className }: { className?: string }) {
   )
 
   return (
-    <div className={cn("panel flex flex-col", className)}>
+    <div className={cn("panel", className)}>
       <div className="panel-head">
         <h3 className="text-base font-extrabold">{t("dashboard.topClients")}</h3>
         <Link to="/carteiras" className="plain mono">
@@ -82,53 +82,55 @@ function TopPortfoliosPanel({ className }: { className?: string }) {
         isEmpty={top.length === 0}
         emptyLabel={t("portfolios.empty")}
       >
-        <Ledger>
-          <LedgerHead>
-            <LedgerRow>
-              <LedgerHeadCell>{t("portfolios.name")}</LedgerHeadCell>
-              <LedgerHeadCell numeric>{t("portfolios.marketValue")}</LedgerHeadCell>
-              <LedgerHeadCell numeric>{t("portfolios.netResult")}</LedgerHeadCell>
-              <LedgerHeadCell numeric>{t("portfolios.returnPercent")}</LedgerHeadCell>
-              <LedgerHeadCell>—</LedgerHeadCell>
-            </LedgerRow>
-          </LedgerHead>
-          <LedgerBody>
-            {top.map((portfolio) => {
-              const valuation = portfolio.valuation
-              return (
-                <LedgerRow key={portfolio.id}>
-                  <LedgerCell>
-                    <Link
-                      to="/carteiras/$portfolioId"
-                      params={{ portfolioId: portfolio.id }}
-                      className="link"
-                    >
-                      {portfolio.name}
-                    </Link>
-                  </LedgerCell>
-                  <LedgerCell numeric>
-                    {currencyOrDash(valuation?.market_value, portfolio.base_currency, locale)}
-                  </LedgerCell>
-                  <LedgerCell numeric className={toneOf(valuation?.net_result) ?? ""}>
-                    {currencyOrDash(valuation?.net_result, portfolio.base_currency, locale)}
-                  </LedgerCell>
-                  <LedgerCell numeric>
-                    {percentPointsOrDash(valuation?.return_percent, locale)}
-                  </LedgerCell>
-                  <LedgerCell>
-                    <Sparkline
-                      data={(valuation?.positions ?? []).map((position) =>
-                        Number(position.market_value ?? 0),
-                      )}
-                      width={80}
-                      height={20}
-                    />
-                  </LedgerCell>
-                </LedgerRow>
-              )
-            })}
-          </LedgerBody>
-        </Ledger>
+        <div className="ledger-fill">
+          <Ledger>
+            <LedgerHead>
+              <LedgerRow>
+                <LedgerHeadCell>{t("portfolios.name")}</LedgerHeadCell>
+                <LedgerHeadCell numeric>{t("portfolios.marketValue")}</LedgerHeadCell>
+                <LedgerHeadCell numeric>{t("portfolios.netResult")}</LedgerHeadCell>
+                <LedgerHeadCell numeric>{t("portfolios.returnPercent")}</LedgerHeadCell>
+                <LedgerHeadCell>—</LedgerHeadCell>
+              </LedgerRow>
+            </LedgerHead>
+            <LedgerBody>
+              {top.map((portfolio) => {
+                const valuation = portfolio.valuation
+                return (
+                  <LedgerRow key={portfolio.id}>
+                    <LedgerCell>
+                      <Link
+                        to="/carteiras/$portfolioId"
+                        params={{ portfolioId: portfolio.id }}
+                        className="link"
+                      >
+                        {portfolio.name}
+                      </Link>
+                    </LedgerCell>
+                    <LedgerCell numeric>
+                      {currencyOrDash(valuation?.market_value, portfolio.base_currency, locale)}
+                    </LedgerCell>
+                    <LedgerCell numeric className={toneOf(valuation?.net_result) ?? ""}>
+                      {currencyOrDash(valuation?.net_result, portfolio.base_currency, locale)}
+                    </LedgerCell>
+                    <LedgerCell numeric>
+                      {percentPointsOrDash(valuation?.return_percent, locale)}
+                    </LedgerCell>
+                    <LedgerCell>
+                      <Sparkline
+                        data={(valuation?.positions ?? []).map((position) =>
+                          Number(position.market_value ?? 0),
+                        )}
+                        width={80}
+                        height={20}
+                      />
+                    </LedgerCell>
+                  </LedgerRow>
+                )
+              })}
+            </LedgerBody>
+          </Ledger>
+        </div>
       </AsyncState>
     </div>
   )
@@ -231,7 +233,7 @@ export function DashboardPage() {
       <section className="panel-grid two">
         <div className="flex flex-col gap-6 self-stretch">
           <AllocationPanel />
-          <TopPortfoliosPanel className="flex-1" />
+          <TopPortfoliosPanel className="panel-grow" />
         </div>
         <MarketPanel />
       </section>

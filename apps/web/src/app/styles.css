@@ -98,6 +98,29 @@
   }
 }
 
+/* A panel that fills the leftover column height: the table stretches so its
+   rows absorb the extra space instead of leaving a bare gap under a border. */
+.panel-grow {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-grow .ledger-fill {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+}
+
+.panel-grow .ledger-fill > table {
+  flex: 1 1 auto;
+  height: 100%;
+}
+
+.panel-grow .ledger-fill > table > thead {
+  height: 0;
+}
+
 /* Footer: every column starts with the same mono label so the three columns
    share a baseline instead of drifting up or down. */
 .foot-note {
