@@ -37,7 +37,8 @@ const schema = z.object({
   notes: z.string().max(280).optional(),
 })
 
-type FormValues = z.infer<typeof schema>
+type FormInput = z.input<typeof schema>
+type FormValues = z.output<typeof schema>
 
 export function RecordTransactionDialog({
   portfolioId,
@@ -52,7 +53,7 @@ export function RecordTransactionDialog({
   const instruments = useInstruments({})
   const record = useRecordTransaction(portfolioId)
 
-  const form = useForm<FormValues>({
+  const form = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       symbol: "",

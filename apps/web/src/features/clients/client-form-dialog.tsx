@@ -31,7 +31,7 @@ import { useI18n } from "@/shared/i18n/provider"
 
 const schema = z.object({
   name: z.string().min(2, "common.required").max(120),
-  email: z.string().email("common.required").max(254),
+  email: z.email("common.required").max(254),
   tax_id: z.string().min(11, "common.required").max(18),
   notes: z.string().max(500).optional(),
   profile: z.enum(["conservative", "moderate", "aggressive", "questionnaire"]),

@@ -10,7 +10,7 @@ import { toProblem } from "@/shared/api/problem"
 import { useI18n } from "@/shared/i18n/provider"
 
 const schema = z.object({
-  email: z.string().min(3, "common.required").email("clients.email"),
+  email: z.email("common.required"),
   password: z.string().min(1, "common.required"),
 })
 

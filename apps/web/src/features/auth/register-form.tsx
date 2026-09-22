@@ -11,7 +11,7 @@ import { useI18n } from "@/shared/i18n/provider"
 
 const schema = z.object({
   display_name: z.string().min(2, "common.required"),
-  email: z.string().min(3, "common.required").email("common.required"),
+  email: z.email("common.required"),
   password: z
     .string()
     .min(10, "auth.registerPasswordHint")
