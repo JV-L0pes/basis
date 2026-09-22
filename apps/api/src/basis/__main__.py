@@ -12,14 +12,16 @@ import asyncio
 
 import uvicorn
 
+from basis.config import get_settings
 from basis.main import app
 
 
 def main() -> None:
+    settings = get_settings()
     config = uvicorn.Config(
         app,
         host="127.0.0.1",
-        port=8000,
+        port=settings.port,
         log_level="info",
         reload=False,
     )

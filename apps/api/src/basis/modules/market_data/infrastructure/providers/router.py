@@ -147,14 +147,20 @@ class CachedMacroProvider:
         return series
 
     async def latest(self, code: MacroSeriesCode) -> IndexPointView | None:
-        latest = self._cache.get(f"macro:latest:{code}")
-        if isinstance(latest, IndexPointView):
-            return latest
-        series = await self.get_series(code, start=date(2000, 1, 1), end=date(2100, 1, 1))
-        if not series:
-            return None
-        value = series[-1]
-        self._cache.set(f"macro:latest:{code}", value, self._ttl)
+        cached = self._cache.get(f"macro:latest:{code}")
+        if isinstance(cached, IndexPointView):
+            return cached
+
+        value: IndexPointView | None = None
+        if self._allow_live:
+            try:
+                value = await self._live.latest(code)
+            except Exception as exc:  # noqa: BLE001 — fall back to deterministic data
+                logger.warning("macro_latest_failed", code=str(code), reason=type(exc).__name__)
+        if value is None:
+            value = await self._fallback.latest(code)
+        if value is not None:
+            self._cache.set(f"macro:latest:{code}", value, self._ttl)
         return value
 
 

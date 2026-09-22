@@ -60,6 +60,7 @@ class Settings(BaseSettings):
     environment: Environment = "local"
     debug: bool = False
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    port: int = Field(default=8000, ge=1, le=65535, description="Dev server port (python -m basis)")
 
     secret_key: SecretStr = SecretStr("insecure-development-secret-change-me")
     cors_origins: list[str] = ["http://localhost:5173"]

@@ -43,6 +43,7 @@ SEED_PRICES: Mapping[str, Decimal] = {
     "EUR/BRL": Decimal("5.88"),
     "^BVSP": Decimal("132450.00"),
     "TESOURO SELIC 2029": Decimal("15230.50"),
+    "CDB 120% CDI 2027": Decimal("1520.40"),
 }
 
 # The symbols highlighted on the dashboard, in display order.
@@ -71,7 +72,8 @@ class SeedInstrument:
     currency_code: str = "BRL"
 
 
-# The catalog the platform ships with: B3 blue chips, FIIs, ETFs and crypto.
+# The catalog the platform ships with: B3 blue chips, FIIs, ETFs, crypto and
+# fixed income (Brazilian retail portfolios are mostly fixed income).
 SEED_INSTRUMENTS: tuple[SeedInstrument, ...] = (
     SeedInstrument("PETR4", "Petrobras PN", AssetClass.EQUITY),
     SeedInstrument("VALE3", "Vale ON", AssetClass.EQUITY),
@@ -85,6 +87,8 @@ SEED_INSTRUMENTS: tuple[SeedInstrument, ...] = (
     SeedInstrument("BOVA11", "iShares Ibovespa ETF", AssetClass.ETF),
     SeedInstrument("BTC", "Bitcoin", AssetClass.CRYPTO),
     SeedInstrument("ETH", "Ether", AssetClass.CRYPTO),
+    SeedInstrument("TESOURO2029", "Tesouro Selic 2029", AssetClass.FIXED_INCOME),
+    SeedInstrument("CDB2027", "CDB 120% CDI 2027", AssetClass.FIXED_INCOME),
 )
 
 # Alternative symbols accepted by the seed provider.
@@ -92,6 +96,7 @@ _SYMBOL_ALIASES: Mapping[str, str] = {
     "USDBRL=X": "USD/BRL",
     "EURBRL=X": "EUR/BRL",
     "TESOURO2029": "TESOURO SELIC 2029",
+    "CDB2027": "CDB 120% CDI 2027",
     "PETR4.SA": "PETR4",
     "VALE3.SA": "VALE3",
     "ITUB4.SA": "ITUB4",
@@ -100,6 +105,33 @@ _SYMBOL_ALIASES: Mapping[str, str] = {
 # Crypto is quoted in BRL (as Brazilian exchanges do); international symbols
 # such as ^BVSP and USD/BRL keep their own units.
 _USD_SYMBOLS: frozenset[str] = frozenset()
+
+# Per-symbol daily behaviour for the deterministic walk: fixed income drifts
+# gently with almost no noise, crypto is wild, everything else sits in between.
+_SEED_VOLATILITY: Mapping[str, Decimal] = {
+    "TESOURO SELIC 2029": Decimal("0.0002"),
+    "CDB 120% CDI 2027": Decimal("0.0003"),
+    "IGUATEMI11": Decimal("0.011"),
+    "HGLG11": Decimal("0.012"),
+    "MXRF11": Decimal("0.010"),
+    "BOVA11": Decimal("0.011"),
+    "IVVB11": Decimal("0.012"),
+    "^BVSP": Decimal("0.010"),
+    "USDBRL=X": Decimal("0.007"),
+    "EURBRL=X": Decimal("0.007"),
+    "BTC": Decimal("0.035"),
+    "ETH": Decimal("0.040"),
+    "SOL": Decimal("0.045"),
+}
+_SEED_DRIFT: Mapping[str, Decimal] = {
+    "TESOURO SELIC 2029": Decimal("0.00042"),
+    "CDB 120% CDI 2027": Decimal("0.00046"),
+    "BTC": Decimal("0.00060"),
+    "ETH": Decimal("0.00050"),
+    "SOL": Decimal("0.00040"),
+}
+_DEFAULT_VOLATILITY = Decimal("0.018")
+_DEFAULT_DRIFT = Decimal("0.00025")
 
 
 class SeedQuoteProvider:
@@ -169,14 +201,23 @@ class SeedQuoteProvider:
         return points
 
     def _daily_change(self, symbol: str, moment: date) -> Decimal:
-        """Deterministic daily return in [-2.5%, +2.5%], stable across runs."""
-        digest = hashlib.sha256(f"{symbol.upper()}:{moment.isoformat()}".encode()).hexdigest()
+        """Deterministic daily return, stable across runs and per asset class."""
+        key = self.resolve(symbol) or symbol.upper()
+        digest = hashlib.sha256(f"{key}:{moment.isoformat()}".encode()).hexdigest()
         generator = random.Random(int(digest[:16], 16))  # noqa: S311 — deterministic, not cryptographic
-        return Decimal(str(round(generator.uniform(-0.025, 0.025), 6)))
+        volatility = _SEED_VOLATILITY.get(key, _DEFAULT_VOLATILITY)
+        drift = _SEED_DRIFT.get(key, _DEFAULT_DRIFT)
+        noise = Decimal(str(round(generator.uniform(-1.0, 1.0), 6))) * volatility
+        return drift + noise
 
 
 class SeedMacroProvider:
-    """Deterministic macro series, used when live providers are disabled."""
+    """Deterministic macro series, used when live providers are disabled.
+
+    Rate series mirror the BCB SGS semantics: each point is the rate for that
+    period (Selic and CDI are daily rates, IPCA is monthly), not a cumulative
+    sum. ``USD/BRL`` is a price level and walks like an FX rate.
+    """
 
     _DAILY_RATES: Mapping[MacroSeriesCode, Decimal] = {
         MacroSeriesCode.SELIC: Decimal("0.00041"),
@@ -194,9 +235,9 @@ class SeedMacroProvider:
     ) -> Sequence[IndexPointView]:
         if end < start:
             return []
-        rate = self._DAILY_RATES[code]
+        base_rate = self._DAILY_RATES[code]
         points: list[IndexPointView] = []
-        value = self._base_usd if code is MacroSeriesCode.USD_BRL else Decimal(0)
+        value = self._base_usd if code is MacroSeriesCode.USD_BRL else base_rate
         for offset in range((end - start).days + 1):
             moment = start + timedelta(days=offset)
             if code is MacroSeriesCode.USD_BRL:
@@ -209,7 +250,14 @@ class SeedMacroProvider:
                 drift = Decimal(str(round(generator.uniform(-0.008, 0.008), 6)))
                 value = (value * (Decimal(1) + drift)).quantize(Decimal("0.0001"))
             else:
-                value = (value + rate).quantize(Decimal("0.0001"))
+                generator = random.Random(  # noqa: S311 — deterministic
+                    int(
+                        hashlib.sha256(f"{code}:{moment.isoformat()}".encode()).hexdigest()[:16],
+                        16,
+                    )
+                )
+                noise = Decimal(str(round(generator.uniform(-0.08, 0.08), 6)))
+                value = (base_rate * (Decimal(1) + noise)).quantize(Decimal("0.000001"))
             points.append(IndexPointView(code=str(code), date=moment, value=value))
         return points
 

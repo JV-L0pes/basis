@@ -226,5 +226,6 @@ class TestOverviewApi:
             "ipca",
             "usd_brl",
         }
-        assert len(body["quotes"]) == 12
+        # Every catalogued instrument with a seed price is quoted; XPTO3 has none.
+        assert len(body["quotes"]) == len(SEED_INSTRUMENTS)
         assert all(quote["source"] == "seed" for quote in body["quotes"])
