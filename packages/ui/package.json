@@ -27,7 +27,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lightweight-charts": "^5.2.1",
-    "sonner": "^1.7.1",
+    "sonner": "^2.0.8",
     "tailwind-merge": "^2.6.0"
   },
   "peerDependencies": {
