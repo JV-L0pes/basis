@@ -124,8 +124,8 @@ def get_get_portfolio(
     return GetPortfolio(portfolios=portfolios, quotes=quotes)
 
 
-def get_list_portfolios(portfolios: PortfolioRepoDep) -> ListPortfolios:
-    return ListPortfolios(portfolios=portfolios)
+def get_list_portfolios(portfolios: PortfolioRepoDep, quotes: QuotesDep) -> ListPortfolios:
+    return ListPortfolios(portfolios=portfolios, quotes=quotes)
 
 
 def get_portfolio_transactions(portfolios: PortfolioRepoDep) -> GetPortfolioTransactions:

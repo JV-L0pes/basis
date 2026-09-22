@@ -8,6 +8,8 @@ import {
   LedgerHeadCell,
   LedgerRow,
 } from "@basis/ui"
+import { Link } from "@tanstack/react-router"
+
 import { useI18n } from "@/shared/i18n/provider"
 import { percentOrDash, toneOf } from "@/shared/lib/display"
 
@@ -42,9 +44,9 @@ export function PositionsTab({
           {positions.map((position) => (
             <LedgerRow key={position.symbol}>
               <LedgerCell>
-                <a className="link" href={`/mercado/${position.symbol}`}>
+                <Link to="/mercado/$symbol" params={{ symbol: position.symbol }} className="link">
                   {position.symbol}
-                </a>
+                </Link>
                 <div className="mono text-ash">
                   {t(`assetClass.${position.asset_class}` as "assetClass.equity")}
                 </div>

@@ -8,6 +8,7 @@ import {
   LedgerRow,
   Skeleton,
 } from "@basis/ui"
+import { Link } from "@tanstack/react-router"
 import { useMemo, useState } from "react"
 
 import { useInstruments, useMarketOverview } from "@/entities/instrument/api"
@@ -95,9 +96,13 @@ export function MarketsPage() {
               return (
                 <LedgerRow key={instrument.id}>
                   <LedgerCell>
-                    <a className="link font-semibold" href={`/mercado/${instrument.symbol}`}>
+                    <Link
+                      to="/mercado/$symbol"
+                      params={{ symbol: instrument.symbol }}
+                      className="link font-semibold"
+                    >
                       {instrument.symbol}
-                    </a>
+                    </Link>
                   </LedgerCell>
                   <LedgerCell>{instrument.name}</LedgerCell>
                   <LedgerCell>

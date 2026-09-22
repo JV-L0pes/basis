@@ -10,6 +10,7 @@ import {
   LedgerRow,
   Skeleton,
 } from "@basis/ui"
+import { Link, useSearch } from "@tanstack/react-router"
 import { useState } from "react"
 
 import { useBookOverview } from "@/entities/instrument/api"
@@ -23,7 +24,8 @@ const SKELETON_KEYS = ["r1", "r2", "r3", "r4", "r5"] as const
 
 export function PortfoliosPage() {
   const { t, locale } = useI18n()
-  const portfolios = usePortfolios()
+  const { clientId } = useSearch({ from: "/carteiras" })
+  const portfolios = usePortfolios({ clientId })
   const book = useBookOverview()
   const [dialogOpen, setDialogOpen] = useState(false)
 
@@ -80,9 +82,13 @@ export function PortfoliosPage() {
               return (
                 <LedgerRow key={portfolio.id}>
                   <LedgerCell>
-                    <a className="link font-semibold" href={`/carteiras/${portfolio.id}`}>
+                    <Link
+                      to="/carteiras/$portfolioId"
+                      params={{ portfolioId: portfolio.id }}
+                      className="link font-semibold"
+                    >
                       {portfolio.name}
-                    </a>
+                    </Link>
                     <div className="mono text-ash">{portfolio.base_currency}</div>
                   </LedgerCell>
                   <LedgerCell>

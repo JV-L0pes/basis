@@ -199,12 +199,32 @@ class TestRefreshSession:
         assert old_record.revoked_at == MOMENT
         assert old_record.replaced_by_digest == token_digest(rotated.refresh.token)
 
-    async def test_reuse_of_revoked_token_revokes_every_session(self) -> None:
+    async def test_reuse_inside_the_grace_window_keeps_the_session_alive(self) -> None:
         harness = Harness()
         registered = await harness.register.execute(_register_command())
         rotated = await harness.refresh.execute(
             RefreshSessionCommand(refresh_token=registered.refresh.token)
         )
+
+        with pytest.raises(AuthenticationError, match="already rotated"):
+            await harness.refresh.execute(
+                RefreshSessionCommand(refresh_token=registered.refresh.token)
+            )
+
+        # The rotated session is untouched: this is a client race, not theft.
+        assert (
+            harness.refresh_tokens.records[token_digest(rotated.refresh.token)].revoked_at
+            is None
+        )
+
+    async def test_reuse_beyond_the_grace_window_revokes_every_session(self) -> None:
+        harness = Harness()
+        registered = await harness.register.execute(_register_command())
+        rotated = await harness.refresh.execute(
+            RefreshSessionCommand(refresh_token=registered.refresh.token)
+        )
+
+        harness.clock.advance(timedelta(seconds=31))
 
         with pytest.raises(AuthenticationError, match="already been used"):
             await harness.refresh.execute(
@@ -213,7 +233,6 @@ class TestRefreshSession:
 
         for record in harness.refresh_tokens.records.values():
             assert record.revoked_at is not None
-        # The rotated session was terminated as well (theft response).
         assert (
             harness.refresh_tokens.records[token_digest(rotated.refresh.token)].revoked_at
             is not None

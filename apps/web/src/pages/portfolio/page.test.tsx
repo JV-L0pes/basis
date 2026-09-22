@@ -1,16 +1,13 @@
 import { screen, within } from "@testing-library/react"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { beforeEach, describe, expect, it } from "vitest"
 
 import { PortfolioPage } from "@/pages/portfolio/page"
 import { expectNoA11yViolations, renderWithProviders } from "@/test/render"
-
-vi.mock("@tanstack/react-router", () => ({
-  useParams: () => ({ portfolioId: "01920000-0000-7000-8000-000000000201" }),
-  useNavigate: () => vi.fn(),
-}))
+import { setTestRoute } from "@/test/router-stub"
 
 beforeEach(() => {
   localStorage.setItem("basis-lang", "pt")
+  setTestRoute({ params: { portfolioId: "01920000-0000-7000-8000-000000000201" } })
 })
 
 describe("PortfolioPage", () => {

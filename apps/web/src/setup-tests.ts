@@ -59,6 +59,10 @@ if (!globalThis.IntersectionObserver) {
     IntersectionObserverStub as unknown as typeof IntersectionObserver
 }
 
+if (!window.scrollTo) {
+  window.scrollTo = () => {}
+}
+
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {}
 }

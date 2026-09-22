@@ -11,6 +11,7 @@ import {
   Sparkline,
 } from "@basis/ui"
 import { TrendDown, TrendUp } from "@basis/ui/icons"
+import { Link } from "@tanstack/react-router"
 
 import { useBookOverview, useMarketOverview } from "@/entities/instrument/api"
 import { usePortfolios } from "@/entities/portfolio/api"
@@ -163,9 +164,13 @@ export function DashboardPage() {
                 return (
                   <LedgerRow key={portfolio.id}>
                     <LedgerCell>
-                      <a className="link" href={`/carteiras/${portfolio.id}`}>
+                      <Link
+                        to="/carteiras/$portfolioId"
+                        params={{ portfolioId: portfolio.id }}
+                        className="link"
+                      >
                         {portfolio.name}
-                      </a>
+                      </Link>
                     </LedgerCell>
                     <LedgerCell numeric>
                       {currencyOrDash(valuation?.market_value, portfolio.base_currency, locale)}

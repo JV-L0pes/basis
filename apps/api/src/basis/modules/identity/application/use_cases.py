@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from uuid import UUID
 
 from basis.kernel.application.ports import UnitOfWork
@@ -19,6 +20,7 @@ from basis.modules.identity.application.sessions import SessionIssuer
 from basis.modules.identity.domain.models import User
 from basis.modules.identity.domain.ports import (
     PasswordHasher,
+    RefreshTokenRecord,
     RefreshTokenRepository,
     UserRepository,
 )
@@ -36,6 +38,12 @@ class RegisterUserCommand:
     email: str
     password: str
     display_name: str
+
+
+# A refresh token replayed this shortly after rotation is a client race (a
+# double submit, two tabs, React StrictMode), not theft: refuse the token but
+# keep the session family alive. Reuse beyond the window terminates everything.
+ROTATION_GRACE_SECONDS = 30
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,6 +73,14 @@ class ChangePasswordCommand:
 class UpdateProfileCommand:
     user_id: UUID
     display_name: str
+
+
+def _is_rotation_race(record: RefreshTokenRecord, now: datetime) -> bool:
+    """Whether a revoked token was replayed inside the rotation grace window."""
+    if record.revoked_at is None or record.replaced_by_digest is None:
+        return False
+    elapsed = (now - record.revoked_at).total_seconds()
+    return 0 <= elapsed <= ROTATION_GRACE_SECONDS
 
 
 class RegisterUser:
@@ -181,7 +197,10 @@ class RefreshSession:
             raise AuthenticationError("Invalid refresh token")
 
         if record.is_revoked:
-            # Token reuse: assume theft and terminate every session of that user.
+            if _is_rotation_race(record, now):
+                raise AuthenticationError("Refresh token was already rotated")
+            # Token reuse beyond the grace window: assume theft and terminate
+            # every session of that user.
             await self._refresh_tokens.revoke_all_for_user(record.user_id, at=now)
             await self._uow.commit()
             raise AuthenticationError("Refresh token has already been used")

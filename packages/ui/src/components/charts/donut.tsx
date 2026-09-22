@@ -17,13 +17,15 @@ export interface DonutProps {
   className?: string
 }
 
-const INK_SHADES = [
-  "var(--ink)",
-  "color-mix(in srgb, var(--ink) 72%, var(--paper))",
-  "color-mix(in srgb, var(--ink) 52%, var(--paper))",
-  "color-mix(in srgb, var(--ink) 34%, var(--paper))",
-  "color-mix(in srgb, var(--ink) 20%, var(--paper))",
-  "var(--gold)",
+const CHART_COLOURS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--chart-6)",
+  "var(--chart-7)",
+  "var(--chart-8)",
 ]
 
 /** Allocation donut in pure SVG with an ink hairline between slices. */
@@ -60,7 +62,7 @@ export function Donut({
       slice,
       dash: (slice.value / total) * circumference,
       offset: startFraction * circumference,
-      colour: INK_SHADES[index % INK_SHADES.length],
+      colour: CHART_COLOURS[index % CHART_COLOURS.length],
     }
   })
 
@@ -113,7 +115,7 @@ export function Donut({
               <span
                 aria-hidden="true"
                 className="inline-block h-2.5 w-2.5 flex-none"
-                style={{ background: INK_SHADES[index % INK_SHADES.length] }}
+                style={{ background: CHART_COLOURS[index % CHART_COLOURS.length] }}
               />
               <span className="mono truncate text-[0.55rem] text-ash">{slice.label}</span>
             </span>

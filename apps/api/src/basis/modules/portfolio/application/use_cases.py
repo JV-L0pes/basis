@@ -257,17 +257,8 @@ class GetPortfolio:
 
     async def execute(self, portfolio_id: UUID) -> PortfolioView:
         portfolio = await _require_portfolio(self._portfolios, portfolio_id)
-        prices = await self._prices_for(portfolio)
-        return PortfolioView.from_entity(
-            portfolio, valuation=valuate(portfolio, prices)
-        )
-
-    async def _prices_for(self, portfolio: Portfolio) -> Mapping[str, Money]:
-        symbols = [instrument.symbol for instrument in portfolio.instruments()]
-        if not symbols:
-            return {}
-        quotes = await self._quotes.get_quotes(symbols)
-        return {symbol: quote.price for symbol, quote in quotes.items()}
+        prices = await _prices_for(portfolio, self._quotes)
+        return PortfolioView.from_entity(portfolio, valuation=valuate(portfolio, prices))
 
 
 class GetPortfolioTransactions:
@@ -284,9 +275,15 @@ class GetPortfolioTransactions:
 
 
 class ListPortfolios:
-    """List portfolios with optional client/status filters and keyset pagination."""
-    def __init__(self, *, portfolios: PortfolioRepository) -> None:
+    """List portfolios with optional client/status filters and keyset pagination.
+
+    The page is marked to market with a single batch of quotes, so list screens
+    show value, result and return without a round trip per portfolio.
+    """
+
+    def __init__(self, *, portfolios: PortfolioRepository, quotes: QuoteProvider) -> None:
         self._portfolios = portfolios
+        self._quotes = quotes
 
     async def execute(self, query: ListPortfoliosQuery) -> PortfolioPage:
         if query.limit < 1:
@@ -297,7 +294,21 @@ class ListPortfolios:
         portfolios, has_more = await self._portfolios.list_page(
             limit=limit, cursor=cursor, client_id=query.client_id, status=query.status
         )
-        items = [PortfolioView.from_entity(portfolio) for portfolio in portfolios]
+
+        symbols = sorted(
+            {
+                instrument.symbol
+                for portfolio in portfolios
+                for instrument in portfolio.instruments()
+            }
+        )
+        quotes = await self._quotes.get_quotes(symbols) if symbols else {}
+        prices: dict[str, Money] = {symbol: quote.price for symbol, quote in quotes.items()}
+
+        items = [
+            PortfolioView.from_entity(portfolio, valuation=valuate(portfolio, prices))
+            for portfolio in portfolios
+        ]
         next_cursor: str | None = None
         if has_more and portfolios:
             last = portfolios[-1]
@@ -330,6 +341,15 @@ async def _require_portfolio(
     if portfolio is None:
         raise NotFoundError("Portfolio not found", details={"portfolio_id": str(portfolio_id)})
     return portfolio
+
+
+async def _prices_for(portfolio: Portfolio, quotes: QuoteProvider) -> Mapping[str, Money]:
+    """Latest prices for every instrument the portfolio ever traded."""
+    symbols = [instrument.symbol for instrument in portfolio.instruments()]
+    if not symbols:
+        return {}
+    batch = await quotes.get_quotes(symbols)
+    return {symbol: quote.price for symbol, quote in batch.items()}
 
 
 __all__ = [

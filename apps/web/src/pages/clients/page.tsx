@@ -15,6 +15,7 @@ import {
   SelectValue,
   toast,
 } from "@basis/ui"
+import { Link } from "@tanstack/react-router"
 import { useState } from "react"
 
 import {
@@ -162,9 +163,9 @@ export function ClientsPage() {
                 </LedgerCell>
                 <LedgerCell numeric>
                   <span className="flex justify-end gap-3">
-                    <a className="plain" href={`/carteiras?clientId=${client.id}`}>
+                    <Link to="/carteiras" search={{ clientId: client.id }} className="plain">
                       {t("common.view")}
-                    </a>
+                    </Link>
                     <button
                       type="button"
                       className="plain"

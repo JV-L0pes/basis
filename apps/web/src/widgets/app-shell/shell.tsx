@@ -11,7 +11,7 @@ import {
   SheetContent,
 } from "@basis/ui"
 import { ArrowUpRight, CircleHalf } from "@basis/ui/icons"
-import { useNavigate } from "@tanstack/react-router"
+import { Link, useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 import { logout } from "@/entities/session/api"
 import { useSessionStore } from "@/entities/session/store"
@@ -47,21 +47,21 @@ export function TopBar() {
     <header className="bar stuck">
       <div className="shell bar-in">
         <div className="flex min-w-0 items-center gap-3">
-          <a href="/" className="mark" aria-label={t("app.name")}>
+          <Link to="/" className="mark" aria-label={t("app.name")}>
             BS
-          </a>
+          </Link>
           <span className="late mono">{t("app.tagline")}</span>
         </div>
 
         <nav className="mono hidden items-center gap-8 md:flex" aria-label={t("nav.menu")}>
           {user
             ? NAV.map((item) => (
-                <a key={item.to} href={item.to} className="roll">
+                <Link key={item.to} to={item.to} className="roll">
                   <span>
                     <i>{t(item.key)}</i>
                     <i aria-hidden="true">{t(item.key)}</i>
                   </span>
-                </a>
+                </Link>
               ))
             : null}
         </nav>
@@ -88,9 +88,9 @@ export function TopBar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <a href="/login" className="plain">
+            <Link to="/login" className="plain">
               {t("auth.submit")}
-            </a>
+            </Link>
           )}
 
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>

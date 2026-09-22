@@ -121,7 +121,7 @@ class TestRefreshRotation:
         assert client.cookies[REFRESH_COOKIE_NAME] != first_cookie
         assert response.json()["token"]["access_token"]
 
-    def test_reusing_a_rotated_cookie_is_rejected_and_kills_sessions(
+    def test_reusing_a_rotated_cookie_is_rejected_without_killing_the_session(
         self, client: TestClient
     ) -> None:
         register(client)
@@ -130,13 +130,14 @@ class TestRefreshRotation:
         assert client.post(REFRESH).status_code == 200
         second_cookie = client.cookies[REFRESH_COOKIE_NAME]
 
+        # An immediate replay is a client race: rejected, session stays valid.
         client.cookies.set(REFRESH_COOKIE_NAME, first_cookie)
         response = client.post(REFRESH)
         assert response.status_code == 401
-        assert "already been used" in response.json()["detail"]
+        assert "already rotated" in response.json()["detail"]
 
         client.cookies.set(REFRESH_COOKIE_NAME, second_cookie)
-        assert client.post(REFRESH).status_code == 401
+        assert client.post(REFRESH).status_code == 200
 
     def test_refresh_without_cookie_is_rejected(self, client: TestClient) -> None:
         response = client.post(REFRESH)

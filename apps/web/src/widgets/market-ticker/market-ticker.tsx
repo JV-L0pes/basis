@@ -32,19 +32,24 @@ export function MarketTicker() {
   return (
     <aside className="ticker" aria-label={t("dashboard.market")}>
       <div className="ticker-track">
-        {[...items, ...items].map((item) => (
-          <span
-            key={`${item.symbol}-${item.value}-${String(item.change)}`}
-            className="mono flex items-baseline gap-3"
+        {[0, 1].map((copy) => (
+          <div
+            key={`ticker-copy-${copy}`}
+            className="flex items-baseline gap-12"
+            aria-hidden={copy === 1 ? true : undefined}
           >
-            <span>{item.symbol}</span>
-            <span className="tnum">{item.value}</span>
-            {item.change !== null ? (
-              <span className={item.change >= 0 ? "text-positive" : "text-negative"}>
-                {formatPercent(item.change / 100, locale)}
+            {items.map((item) => (
+              <span key={`${copy}-${item.symbol}`} className="mono flex items-baseline gap-3">
+                <span>{item.symbol}</span>
+                <span className="tnum">{item.value}</span>
+                {item.change !== null ? (
+                  <span className={item.change >= 0 ? "text-positive" : "text-negative"}>
+                    {formatPercent(item.change / 100, locale)}
+                  </span>
+                ) : null}
               </span>
-            ) : null}
-          </span>
+            ))}
+          </div>
         ))}
       </div>
     </aside>

@@ -78,6 +78,9 @@ const clientsRoute = createRoute({
 const portfoliosRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/carteiras",
+  validateSearch: (search: Record<string, unknown>): { clientId?: string } => ({
+    clientId: typeof search.clientId === "string" ? search.clientId : undefined,
+  }),
   component: PortfoliosPage,
 })
 

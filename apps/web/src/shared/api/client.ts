@@ -28,7 +28,23 @@ export function configureAuth(next: Partial<AuthBridge>): void {
   Object.assign(bridge, next)
 }
 
-export async function refreshAccessToken(): Promise<string | null> {
+let refreshInFlight: Promise<string | null> | null = null
+
+/**
+ * Exchanges the refresh cookie for a new access token.
+ *
+ * Single-flight: concurrent callers (React StrictMode, two tabs, a burst of
+ * 401s) share one request. Without this, the second call would present an
+ * already-rotated cookie and trip the reuse detection, killing the session.
+ */
+export function refreshAccessToken(): Promise<string | null> {
+  refreshInFlight ??= requestRefresh().finally(() => {
+    refreshInFlight = null
+  })
+  return refreshInFlight
+}
+
+async function requestRefresh(): Promise<string | null> {
   try {
     const response = await fetch(`${env.apiUrl}/api/v1/auth/refresh`, {
       method: "POST",
