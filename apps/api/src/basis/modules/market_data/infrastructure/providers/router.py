@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+import asyncio
+from collections.abc import Coroutine, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date
 
@@ -27,9 +28,18 @@ from basis.modules.market_data.infrastructure.providers.yahoo import YahooQuoteP
 
 logger = get_logger("market_data.providers")
 
+# Upstream calls run concurrently, but never more than this per request.
+MAX_CONCURRENT_FETCHES = 6
+
 
 class RoutedQuoteProvider:
-    """Routes symbols to the right provider, caches results and falls back to seed data."""
+    """Routes symbols to the right provider, caches results and falls back to seed data.
+
+    Live providers never block a request: the deterministic series answers
+    immediately and a background task refreshes the cache with the upstream
+    value, so the next read is live. This is the usual market data trade-off —
+    the screen never waits on a flaky vendor.
+    """
 
     def __init__(
         self,
@@ -47,6 +57,7 @@ class RoutedQuoteProvider:
         self._cache = cache
         self._ttl = quote_ttl_seconds
         self._allow_live = allow_live
+        self._refreshes: set[asyncio.Task[None]] = set()
 
     def primary_for(self, symbol: str) -> QuoteProvider:
         upper = symbol.upper()
@@ -57,55 +68,74 @@ class RoutedQuoteProvider:
         return self._brapi
 
     async def get_quote(self, symbol: str) -> QuoteView | None:
-        cached = self._cache.get(f"quote:{symbol.upper()}")
+        normalized = symbol.upper()
+        cached = self._cache.get(f"quote:{normalized}")
         if isinstance(cached, QuoteView):
             return cached
-        quote = await self._resolve_quote(symbol)
+
+        if self._allow_live:
+            self._schedule_refresh(self._refresh_quote(normalized))
+        quote = await self._seed.get_quote(symbol)
         if quote is not None:
-            self._cache.set(f"quote:{symbol.upper()}", quote, self._ttl)
+            self._cache.set(f"quote:{normalized}", quote, self._ttl)
         return quote
 
     async def get_quotes(self, symbols: Sequence[str]) -> Mapping[str, QuoteView]:
-        quotes: dict[str, QuoteView] = {}
-        for symbol in symbols:
-            quote = await self.get_quote(symbol)
-            if quote is not None:
-                quotes[quote.symbol] = quote
-        return quotes
+        """Fetch the batch concurrently: latency is the slowest symbol, not the sum."""
+        unique = list(dict.fromkeys(symbol.upper() for symbol in symbols))
+        if not unique:
+            return {}
+        semaphore = asyncio.Semaphore(MAX_CONCURRENT_FETCHES)
+
+        async def fetch(symbol: str) -> QuoteView | None:
+            async with semaphore:
+                return await self.get_quote(symbol)
+
+        results = await asyncio.gather(*(fetch(symbol) for symbol in unique))
+        return {quote.symbol: quote for quote in results if quote is not None}
 
     async def get_history(self, symbol: str, *, start: date, end: date) -> Sequence[PricePoint]:
         key = f"history:{symbol.upper()}:{start.isoformat()}:{end.isoformat()}"
         cached = self._cache.get(key)
         if isinstance(cached, tuple):
             return list(cached)
-        points = await self._resolve_history(symbol, start=start, end=end)
+
+        if self._allow_live:
+            self._schedule_refresh(self._refresh_history(symbol, start=start, end=end, key=key))
+        points = await self._seed.get_history(symbol, start=start, end=end)
         self._cache.set(key, tuple(points), self._ttl)
-        return points
+        return list(points)
+
+    async def wait_for_refreshes(self) -> None:
+        """Await the in-flight background refreshes (used by tests and shutdown)."""
+        while self._refreshes:
+            await asyncio.gather(*tuple(self._refreshes), return_exceptions=True)
 
     # -- internals --------------------------------------------------------
-    async def _resolve_quote(self, symbol: str) -> QuoteView | None:
-        if self._allow_live:
-            try:
-                quote = await self.primary_for(symbol).get_quote(symbol)
-                if quote is not None:
-                    return quote
-            except Exception as exc:  # noqa: BLE001 — fall back to the seed provider
-                logger.warning(
-                    "quote_provider_failed", symbol=symbol, reason=type(exc).__name__
-                )
-        return await self._seed.get_quote(symbol)
+    def _schedule_refresh(self, coroutine: Coroutine[object, object, None]) -> None:
+        task = asyncio.create_task(coroutine)
+        self._refreshes.add(task)
+        task.add_done_callback(self._refreshes.discard)
 
-    async def _resolve_history(self, symbol: str, *, start: date, end: date) -> Sequence[PricePoint]:
-        if self._allow_live:
-            try:
-                points = await self.primary_for(symbol).get_history(symbol, start=start, end=end)
-                if points:
-                    return points
-            except Exception as exc:  # noqa: BLE001 — fall back to the seed provider
-                logger.warning(
-                    "history_provider_failed", symbol=symbol, reason=type(exc).__name__
-                )
-        return await self._seed.get_history(symbol, start=start, end=end)
+    async def _refresh_quote(self, symbol: str) -> None:
+        try:
+            quote = await self.primary_for(symbol).get_quote(symbol)
+        except Exception as exc:  # noqa: BLE001 — the seed fallback is already served
+            logger.warning("quote_provider_failed", symbol=symbol, reason=type(exc).__name__)
+            return
+        if quote is not None:
+            self._cache.set(f"quote:{symbol}", quote, self._ttl)
+
+    async def _refresh_history(
+        self, symbol: str, *, start: date, end: date, key: str
+    ) -> None:
+        try:
+            points = await self.primary_for(symbol).get_history(symbol, start=start, end=end)
+        except Exception as exc:  # noqa: BLE001 — the seed series is already served
+            logger.warning("history_provider_failed", symbol=symbol, reason=type(exc).__name__)
+            return
+        if points:
+            self._cache.set(key, tuple(points), self._ttl)
 
 
 class CachedMacroProvider:

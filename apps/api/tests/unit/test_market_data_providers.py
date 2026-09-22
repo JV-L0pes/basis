@@ -97,7 +97,7 @@ class TestBrapiQuoteProvider:
             with pytest.raises(ExternalServiceError):
                 await provider.get_quote("PETR4")
 
-        assert route.call_count == 3
+        assert route.call_count == 2
 
     async def test_transport_error_raises_external_service_error(self) -> None:
         with respx.mock(assert_all_called=False) as mock:

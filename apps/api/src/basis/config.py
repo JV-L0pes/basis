@@ -39,7 +39,7 @@ class MarketDataSettings(BaseSettings):
 
     brapi_token: SecretStr | None = None
     quote_cache_ttl_seconds: int = Field(default=60, ge=0, le=86_400)
-    http_timeout_seconds: float = Field(default=10.0, gt=0, le=120)
+    http_timeout_seconds: float = Field(default=5.0, gt=0, le=120)
     allow_live_providers: bool = True
     max_history_days: int = Field(default=1825, ge=30, le=3650)
 

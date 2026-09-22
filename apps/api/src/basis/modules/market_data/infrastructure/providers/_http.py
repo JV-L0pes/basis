@@ -11,7 +11,8 @@ from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt,
 from basis.kernel.domain.errors import ExternalServiceError
 
 RETRYABLE = (httpx.TransportError, httpx.HTTPStatusError)
-MAX_ATTEMPTS = 3
+MAX_ATTEMPTS = 2
+DEFAULT_BACKOFF_SECONDS = 0.2
 
 
 async def fetch_json(
@@ -44,7 +45,9 @@ async def fetch_json(
     try:
         async for retry in AsyncRetrying(
             stop=stop_after_attempt(MAX_ATTEMPTS),
-            wait=wait_exponential(multiplier=0.3, min=0.3, max=2),
+            wait=wait_exponential(
+                multiplier=DEFAULT_BACKOFF_SECONDS, min=DEFAULT_BACKOFF_SECONDS, max=1
+            ),
             retry=retry_if_exception_type(RETRYABLE),
             reraise=True,
         ):

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections import defaultdict
 from datetime import date, timedelta
 from decimal import Decimal
@@ -126,12 +127,16 @@ class GetPortfolioPerformance:
     async def _history_for(
         self, snapshot: PortfolioSnapshot, start: date, end: date
     ) -> dict[str, dict[date, Decimal]]:
-        history: dict[str, dict[date, Decimal]] = {}
         symbols = [position.symbol for position in snapshot.positions]
-        for symbol in symbols:
-            points = await self._quotes.get_history(symbol, start=start, end=end)
-            history[symbol] = {point.date: point.close.amount for point in points}
-        return history
+        if not symbols:
+            return {}
+        series = await asyncio.gather(
+            *(self._quotes.get_history(symbol, start=start, end=end) for symbol in symbols)
+        )
+        return {
+            symbol: {point.date: point.close.amount for point in points}
+            for symbol, points in zip(symbols, series, strict=True)
+        }
 
     async def _risk_free_annual(self) -> Decimal | None:
         try:

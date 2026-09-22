@@ -1,4 +1,5 @@
 import {
+  cn,
   Donut,
   formatCompact,
   formatCurrency,
@@ -27,19 +28,177 @@ const MACRO_LABELS: Record<string, string> = {
   usd_brl: "USD/BRL",
 }
 
+function AllocationPanel() {
+  const { t, locale } = useI18n()
+  const book = useBookOverview()
+
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <h3 className="text-base font-extrabold">{t("dashboard.bookAllocation")}</h3>
+        <span className="mono text-ash">
+          {formatCompact(book.data?.portfolio_count ?? 0, locale)} {t("dashboard.portfolios")}
+        </span>
+      </div>
+      <div className="panel-body">
+        <AsyncState
+          isLoading={book.isLoading}
+          error={book.error}
+          isEmpty={(book.data?.allocation.length ?? 0) === 0}
+          emptyLabel={t("common.empty")}
+        >
+          <Donut
+            data={(book.data?.allocation ?? []).map((item) => ({
+              label: t(`assetClass.${item.asset_class}` as "assetClass.equity"),
+              value: Number(item.value),
+            }))}
+            currency="BRL"
+            locale={locale}
+          />
+        </AsyncState>
+      </div>
+    </div>
+  )
+}
+
+function TopPortfoliosPanel({ className }: { className?: string }) {
+  const { t, locale } = useI18n()
+  const portfolios = usePortfolios()
+  const top = [...(portfolios.data?.items ?? [])].sort(
+    (a, b) => Number(b.valuation?.market_value ?? 0) - Number(a.valuation?.market_value ?? 0),
+  )
+
+  return (
+    <div className={cn("panel flex flex-col", className)}>
+      <div className="panel-head">
+        <h3 className="text-base font-extrabold">{t("dashboard.topClients")}</h3>
+        <Link to="/carteiras" className="plain mono">
+          {t("portfolios.title")}
+        </Link>
+      </div>
+      <AsyncState
+        isLoading={portfolios.isLoading}
+        error={portfolios.error}
+        isEmpty={top.length === 0}
+        emptyLabel={t("portfolios.empty")}
+      >
+        <Ledger>
+          <LedgerHead>
+            <LedgerRow>
+              <LedgerHeadCell>{t("portfolios.name")}</LedgerHeadCell>
+              <LedgerHeadCell numeric>{t("portfolios.marketValue")}</LedgerHeadCell>
+              <LedgerHeadCell numeric>{t("portfolios.netResult")}</LedgerHeadCell>
+              <LedgerHeadCell numeric>{t("portfolios.returnPercent")}</LedgerHeadCell>
+              <LedgerHeadCell>—</LedgerHeadCell>
+            </LedgerRow>
+          </LedgerHead>
+          <LedgerBody>
+            {top.map((portfolio) => {
+              const valuation = portfolio.valuation
+              return (
+                <LedgerRow key={portfolio.id}>
+                  <LedgerCell>
+                    <Link
+                      to="/carteiras/$portfolioId"
+                      params={{ portfolioId: portfolio.id }}
+                      className="link"
+                    >
+                      {portfolio.name}
+                    </Link>
+                  </LedgerCell>
+                  <LedgerCell numeric>
+                    {currencyOrDash(valuation?.market_value, portfolio.base_currency, locale)}
+                  </LedgerCell>
+                  <LedgerCell numeric className={toneOf(valuation?.net_result) ?? ""}>
+                    {currencyOrDash(valuation?.net_result, portfolio.base_currency, locale)}
+                  </LedgerCell>
+                  <LedgerCell numeric>
+                    {percentPointsOrDash(valuation?.return_percent, locale)}
+                  </LedgerCell>
+                  <LedgerCell>
+                    <Sparkline
+                      data={(valuation?.positions ?? []).map((position) =>
+                        Number(position.market_value ?? 0),
+                      )}
+                      width={80}
+                      height={20}
+                    />
+                  </LedgerCell>
+                </LedgerRow>
+              )
+            })}
+          </LedgerBody>
+        </Ledger>
+      </AsyncState>
+    </div>
+  )
+}
+
+function MarketPanel() {
+  const { t, locale } = useI18n()
+  const overview = useMarketOverview()
+  const gainers = overview.data?.gainers ?? []
+  const losers = overview.data?.losers ?? []
+  const isLive = (overview.data?.quotes ?? []).some((quote) => quote.source !== "seed")
+
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <h3 className="text-base font-extrabold">{t("dashboard.market")}</h3>
+        <span className={isLive ? "live mono text-gold" : "chip muted"}>
+          {isLive ? (
+            <>
+              <i /> {t("markets.live")}
+            </>
+          ) : (
+            t("markets.demo")
+          )}
+        </span>
+      </div>
+      <AsyncState isLoading={overview.isLoading} error={overview.error} skeletonRows={8}>
+        <Ledger>
+          <LedgerHead>
+            <LedgerRow>
+              <LedgerHeadCell>{t("common.symbol")}</LedgerHeadCell>
+              <LedgerHeadCell numeric>{t("common.price")}</LedgerHeadCell>
+              <LedgerHeadCell numeric>{t("markets.change")}</LedgerHeadCell>
+            </LedgerRow>
+          </LedgerHead>
+          <LedgerBody>
+            {[...gainers, ...losers].slice(0, 10).map((quote) => {
+              const change = quote.change_percent ?? 0
+              const icon = change >= 0 ? <TrendUp size={13} /> : <TrendDown size={13} />
+              return (
+                <LedgerRow key={quote.symbol}>
+                  <LedgerCell>
+                    <Link to="/mercado/$symbol" params={{ symbol: quote.symbol }} className="link">
+                      <span className="flex items-center gap-2">
+                        {icon}
+                        {quote.symbol}
+                      </span>
+                    </Link>
+                  </LedgerCell>
+                  <LedgerCell numeric>
+                    {formatCurrency(quote.price, quote.currency, locale)}
+                  </LedgerCell>
+                  <LedgerCell numeric className={toneOf(change) ?? ""}>
+                    {percentPointsOrDash(change, locale)}
+                  </LedgerCell>
+                </LedgerRow>
+              )
+            })}
+          </LedgerBody>
+        </Ledger>
+      </AsyncState>
+    </div>
+  )
+}
+
 export function DashboardPage() {
   const { t, locale } = useI18n()
   const book = useBookOverview()
   const overview = useMarketOverview()
-  const portfolios = usePortfolios()
-
   const macro = overview.data?.macro ?? []
-  const gainers = overview.data?.gainers ?? []
-  const losers = overview.data?.losers ?? []
-
-  const topPortfolios = [...(portfolios.data?.items ?? [])].sort(
-    (a, b) => Number(b.valuation?.market_value ?? 0) - Number(a.valuation?.market_value ?? 0),
-  )
 
   return (
     <main className="shell page">
@@ -70,132 +229,11 @@ export function DashboardPage() {
       </section>
 
       <section className="panel-grid two">
-        <div className="panel">
-          <div className="panel-head">
-            <h3 className="text-base font-extrabold">{t("dashboard.bookAllocation")}</h3>
-            <span className="mono text-ash">{t("dashboard.portfolios")}</span>
-          </div>
-          <div className="panel-body">
-            <AsyncState
-              isLoading={book.isLoading}
-              error={book.error}
-              isEmpty={(book.data?.allocation.length ?? 0) === 0}
-              emptyLabel={t("common.empty")}
-            >
-              <Donut
-                data={(book.data?.allocation ?? []).map((item) => ({
-                  label: t(`assetClass.${item.asset_class}` as "assetClass.equity"),
-                  value: Number(item.value),
-                }))}
-                currency="BRL"
-                locale={locale}
-              />
-            </AsyncState>
-          </div>
+        <div className="flex flex-col gap-6 self-stretch">
+          <AllocationPanel />
+          <TopPortfoliosPanel className="flex-1" />
         </div>
-
-        <div className="panel">
-          <div className="panel-head">
-            <h3 className="text-base font-extrabold">{t("dashboard.market")}</h3>
-            <span className="live mono text-gold">
-              <i /> live
-            </span>
-          </div>
-          <AsyncState isLoading={overview.isLoading} error={overview.error} skeletonRows={6}>
-            <Ledger>
-              <LedgerHead>
-                <LedgerRow>
-                  <LedgerHeadCell>{t("common.symbol")}</LedgerHeadCell>
-                  <LedgerHeadCell numeric>{t("common.price")}</LedgerHeadCell>
-                  <LedgerHeadCell numeric>{t("markets.change")}</LedgerHeadCell>
-                </LedgerRow>
-              </LedgerHead>
-              <LedgerBody>
-                {[...gainers, ...losers].slice(0, 8).map((quote) => {
-                  const change = quote.change_percent ?? 0
-                  const icon = change >= 0 ? <TrendUp size={13} /> : <TrendDown size={13} />
-                  return (
-                    <LedgerRow key={quote.symbol}>
-                      <LedgerCell>
-                        <span className="flex items-center gap-2">
-                          {icon}
-                          {quote.symbol}
-                        </span>
-                      </LedgerCell>
-                      <LedgerCell numeric>
-                        {formatCurrency(quote.price, quote.currency, locale)}
-                      </LedgerCell>
-                      <LedgerCell numeric className={toneOf(change) ?? ""}>
-                        {percentPointsOrDash(change, locale)}
-                      </LedgerCell>
-                    </LedgerRow>
-                  )
-                })}
-              </LedgerBody>
-            </Ledger>
-          </AsyncState>
-        </div>
-      </section>
-
-      <section>
-        <div className="sec-head">
-          <span className="kicker">{t("dashboard.topClients")}</span>
-        </div>
-        <AsyncState
-          isLoading={portfolios.isLoading}
-          error={portfolios.error}
-          isEmpty={topPortfolios.length === 0}
-          emptyLabel={t("portfolios.empty")}
-        >
-          <Ledger>
-            <LedgerHead>
-              <LedgerRow>
-                <LedgerHeadCell>{t("portfolios.name")}</LedgerHeadCell>
-                <LedgerHeadCell numeric>{t("portfolios.marketValue")}</LedgerHeadCell>
-                <LedgerHeadCell numeric>{t("portfolios.netResult")}</LedgerHeadCell>
-                <LedgerHeadCell numeric>{t("portfolios.returnPercent")}</LedgerHeadCell>
-                <LedgerHeadCell>—</LedgerHeadCell>
-              </LedgerRow>
-            </LedgerHead>
-            <LedgerBody>
-              {topPortfolios.map((portfolio) => {
-                const valuation = portfolio.valuation
-                const result = valuation?.net_result
-                return (
-                  <LedgerRow key={portfolio.id}>
-                    <LedgerCell>
-                      <Link
-                        to="/carteiras/$portfolioId"
-                        params={{ portfolioId: portfolio.id }}
-                        className="link"
-                      >
-                        {portfolio.name}
-                      </Link>
-                    </LedgerCell>
-                    <LedgerCell numeric>
-                      {currencyOrDash(valuation?.market_value, portfolio.base_currency, locale)}
-                    </LedgerCell>
-                    <LedgerCell numeric className={toneOf(result) ?? ""}>
-                      {currencyOrDash(result, portfolio.base_currency, locale)}
-                    </LedgerCell>
-                    <LedgerCell numeric>
-                      {percentPointsOrDash(valuation?.return_percent, locale)}
-                    </LedgerCell>
-                    <LedgerCell>
-                      <Sparkline
-                        data={(valuation?.positions ?? []).map((position) =>
-                          Number(position.market_value ?? 0),
-                        )}
-                        width={80}
-                        height={20}
-                      />
-                    </LedgerCell>
-                  </LedgerRow>
-                )
-              })}
-            </LedgerBody>
-          </Ledger>
-        </AsyncState>
+        <MarketPanel />
       </section>
     </main>
   )

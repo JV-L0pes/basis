@@ -72,7 +72,9 @@ export function useMarketOverview() {
   return useQuery({
     queryKey: marketKeys.overview,
     queryFn: () => unwrap(api.GET("/api/v1/market/overview")),
-    staleTime: 60_000,
+    // Live quotes land in the background; one more fetch makes them visible.
+    staleTime: 30_000,
+    refetchInterval: 60_000,
   })
 }
 

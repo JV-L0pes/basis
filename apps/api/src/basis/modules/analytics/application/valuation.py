@@ -12,8 +12,10 @@ Assumptions (documented because they shape every metric):
 
 from __future__ import annotations
 
+from bisect import bisect_right
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -21,6 +23,29 @@ from basis.modules.analytics.domain.performance import CashFlow, ValuationPoint
 from basis.modules.portfolio.domain.ports import PortfolioSnapshot, TransactionSnapshot
 
 ZERO = Decimal(0)
+
+
+@dataclass(frozen=True, slots=True)
+class PriceSeries:
+    """Sorted closes for one symbol, so lookups are O(log n) instead of O(n)."""
+
+    dates: tuple[date, ...]
+    closes: tuple[Decimal, ...]
+
+    @classmethod
+    def from_map(cls, series: Mapping[date, Decimal]) -> PriceSeries:
+        ordered = sorted(series.items())
+        return cls(
+            dates=tuple(moment for moment, _ in ordered),
+            closes=tuple(close for _, close in ordered),
+        )
+
+    def close_on(self, day: date, fallback: Decimal | None) -> Decimal:
+        """Last known close on or before ``day``; cost is the final fallback."""
+        index = bisect_right(self.dates, day)
+        if index == 0:
+            return fallback if fallback is not None else ZERO
+        return self.closes[index - 1]
 
 
 def build_valuation_series(
@@ -35,6 +60,10 @@ def build_valuation_series(
         return []
 
     fallback = {position.symbol: position.average_cost for position in snapshot.positions}
+    series = {
+        symbol: PriceSeries.from_map(points)
+        for symbol, points in history.items()
+    }
     by_day: dict[date, list[TransactionSnapshot]] = defaultdict(list)
     for transaction in sorted(snapshot.transactions, key=lambda item: item.trade_date):
         by_day[transaction.trade_date].append(transaction)
@@ -63,7 +92,8 @@ def build_valuation_series(
         for symbol, quantity in quantities.items():
             if quantity <= 0:
                 continue
-            price = _price_on(history.get(symbol, {}), day, fallback.get(symbol))
+            prices = series.get(symbol) or PriceSeries.from_map({})
+            price = prices.close_on(day, fallback.get(symbol))
             market_value += quantity * price
 
         points.append(
@@ -76,18 +106,6 @@ def build_valuation_series(
         day += timedelta(days=1)
 
     return points
-
-
-def _price_on(
-    series: Mapping[date, Decimal], day: date, fallback: Decimal | None
-) -> Decimal:
-    """Last known price on or before ``day``; cost is the final fallback."""
-    if day in series:
-        return series[day]
-    known = [moment for moment in series if moment <= day]
-    if known:
-        return series[max(known)]
-    return fallback if fallback is not None else ZERO
 
 
 def cash_flows(snapshot: PortfolioSnapshot, valuation: Sequence[ValuationPoint]) -> list[CashFlow]:

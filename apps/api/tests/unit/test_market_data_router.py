@@ -9,6 +9,8 @@ from decimal import Decimal
 import pytest
 
 from basis.kernel.domain.clock import FrozenClock
+from basis.kernel.domain.currency import Currency
+from basis.kernel.domain.money import Money
 from basis.kernel.infrastructure.cache import TtlCache
 from basis.modules.market_data.domain.models import PricePoint
 from basis.modules.market_data.domain.ports import IndexPointView, QuoteView
@@ -51,6 +53,28 @@ class FailingQuoteProvider:
         del symbol, start, end
         self.calls += 1
         raise RuntimeError("provider offline")
+
+
+class StaticQuoteProvider:
+    """Returns a fixed live quote, to observe the background refresh landing."""
+
+    async def get_quote(self, symbol: str) -> QuoteView | None:
+        if symbol.upper() not in {"PETR4"}:
+            return None
+        return QuoteView(
+            symbol="PETR4",
+            price=Money(Decimal("99.99"), Currency.of("BRL")),
+            as_of=MOMENT,
+            source="brapi",
+            change_percent=Decimal("0.5"),
+        )
+
+    async def get_quotes(self, symbols: Sequence[str]) -> Mapping[str, QuoteView]:
+        return {}
+
+    async def get_history(self, symbol: str, *, start: date, end: date) -> Sequence[PricePoint]:
+        del symbol, start, end
+        return []
 
 
 def cached_macro(*, allow_live: bool) -> CachedMacroProvider:
@@ -125,17 +149,54 @@ class TestRoutedQuoteProvider:
             allow_live=allow_live,
         )
 
-    async def test_falls_back_to_seed_when_every_provider_fails(self) -> None:
+    async def test_answers_instantly_with_the_seed_series(self) -> None:
         quote = await self.routed(allow_live=True).get_quote("PETR4")
         assert quote is not None
         assert quote.source == "seed"
 
-    async def test_history_falls_back_to_seed(self) -> None:
+    async def test_history_answers_instantly_with_the_seed_series(self) -> None:
         points = await self.routed(allow_live=True).get_history(
             "PETR4", start=date(2026, 6, 1), end=date(2026, 6, 5)
         )
         assert len(points) == 5
         assert all(isinstance(point, PricePoint) for point in points)
+
+    async def test_a_failing_upstream_never_breaks_the_request(self) -> None:
+        provider = self.routed(allow_live=True)
+        await provider.get_quote("PETR4")
+        await provider.wait_for_refreshes()
+        # The background refresh failed, so the seed value is still served.
+        quote = await provider.get_quote("PETR4")
+        assert quote is not None
+        assert quote.source == "seed"
+
+    async def test_background_refresh_replaces_the_seed_value(self) -> None:
+        clock = FrozenClock(MOMENT)
+        provider = RoutedQuoteProvider(
+            brapi=StaticQuoteProvider(),
+            yahoo=StaticQuoteProvider(),
+            seed=SeedQuoteProvider(clock),
+            cache=TtlCache(),
+            quote_ttl_seconds=60,
+            allow_live=True,
+        )
+
+        first = await provider.get_quote("PETR4")
+        assert first is not None
+        assert first.source == "seed"
+
+        await provider.wait_for_refreshes()
+
+        second = await provider.get_quote("PETR4")
+        assert second is not None
+        assert second.source == "brapi"
+        assert second.price.amount == Decimal("99.99")
+
+    async def test_live_disabled_never_schedules_a_refresh(self) -> None:
+        provider = self.routed(allow_live=False)
+        await provider.get_quote("PETR4")
+        await provider.wait_for_refreshes()
+        assert not provider._refreshes
 
     async def test_unknown_symbol_returns_none(self) -> None:
         assert await self.routed(allow_live=False).get_quote("NAOEXISTE") is None
