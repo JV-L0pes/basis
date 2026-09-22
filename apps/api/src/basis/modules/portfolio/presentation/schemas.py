@@ -10,6 +10,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from basis.kernel.domain.money import Money
+from basis.kernel.infrastructure.http.schemas import decimal_str, money_str
 from basis.modules.portfolio.application.dto import (
     PortfolioPage,
     PortfolioView,
@@ -20,7 +21,7 @@ from basis.modules.portfolio.domain.valuation import PortfolioValuation, Positio
 
 
 def money_amount(money: Money) -> str:
-    return str(money.amount)
+    return money_str(money)
 
 
 class OpenPortfolioRequest(BaseModel):
@@ -98,7 +99,7 @@ class PositionValuationResponse(BaseModel):
             symbol=valuation.instrument.symbol,
             asset_class=str(valuation.instrument.asset_class),
             currency=valuation.instrument.currency.code,
-            quantity=str(valuation.quantity),
+            quantity=decimal_str(valuation.quantity),
             average_cost=money_amount(valuation.average_cost),
             cost_basis=money_amount(valuation.cost_basis),
             market_price=(
@@ -223,7 +224,7 @@ class TransactionResponse(BaseModel):
             asset_class=view.asset_class,
             kind=view.kind,
             trade_date=view.trade_date,
-            quantity=str(view.quantity),
+            quantity=decimal_str(view.quantity),
             price=money_amount(view.price),
             fees=money_amount(view.fees),
             gross_value=money_amount(view.gross_value),

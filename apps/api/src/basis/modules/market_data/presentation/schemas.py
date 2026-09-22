@@ -6,6 +6,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel
 
+from basis.kernel.infrastructure.http.schemas import decimal_str, money_str
 from basis.modules.market_data.application.dto import (
     InstrumentPage,
     InstrumentView,
@@ -68,7 +69,7 @@ class QuoteResponse(BaseModel):
     def from_quote(cls, quote: QuoteView) -> QuoteResponse:
         return cls(
             symbol=quote.symbol,
-            price=str(quote.price.amount),
+            price=money_str(quote.price),
             currency=quote.price.currency.code,
             as_of=quote.as_of,
             source=quote.source,
@@ -85,7 +86,7 @@ class PricePointResponse(BaseModel):
 
     @classmethod
     def from_dto(cls, point: PricePointDTO) -> PricePointResponse:
-        return cls(date=point.date, close=str(point.close), currency=point.currency)
+        return cls(date=point.date, close=decimal_str(point.close), currency=point.currency)
 
 
 class MacroPointResponse(BaseModel):
@@ -105,14 +106,14 @@ class MacroPointResponse(BaseModel):
                 label=point.code,
                 unit="",
                 date=point.date,
-                value=str(point.value),
+                value=decimal_str(point.value),
             )
         return cls(
             code=point.code,
             label=code.label,
             unit=code.unit,
             date=point.date,
-            value=str(point.value),
+            value=decimal_str(point.value),
         )
 
 

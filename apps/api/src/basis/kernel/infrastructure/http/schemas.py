@@ -10,6 +10,16 @@ from basis.kernel.domain.currency import Currency
 from basis.kernel.domain.money import Money
 
 
+def money_str(money: Money) -> str:
+    """Exact amount at the currency's scale, without float noise (1004.9 -> 1004.90)."""
+    return format(money.quantize().amount, "f")
+
+
+def decimal_str(value: Decimal) -> str:
+    """Trim meaningless trailing zeros from database NUMERICs (200.0000000000 -> 200)."""
+    return format(value.normalize(), "f")
+
+
 class MoneySchema(BaseModel):
     """A monetary amount.
 
@@ -25,7 +35,7 @@ class MoneySchema(BaseModel):
     @classmethod
     def from_money(cls, money: Money) -> MoneySchema:
         return cls(
-            amount=str(money.amount),
+            amount=money_str(money),
             currency=money.currency.code,
             numeric=float(money.amount),
         )
@@ -34,4 +44,4 @@ class MoneySchema(BaseModel):
         return Money(amount=Decimal(self.amount), currency=Currency.of(self.currency))
 
 
-__all__ = ["MoneySchema"]
+__all__ = ["MoneySchema", "decimal_str", "money_str"]
