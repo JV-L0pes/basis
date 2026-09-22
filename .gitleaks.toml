@@ -1,0 +1,25 @@
+# Gitleaks configuration.
+#
+# The project intentionally ships fake credentials in tests, demo seeds and docs
+# (reviewers need the demo password). Values in these paths are only exempted
+# from the generic-api-key heuristic; every other detector stays active.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fake credentials used by tests, seeds, local docs and CI placeholders"
+rules = ["generic-api-key"]
+paths = [
+  '''^apps/api/tests/''',
+  '''^apps/web/src/test/''',
+  '''\.test\.tsx?$''',
+  '''^apps/api/src/basis/scripts/seed\.py$''',
+  '''^apps/web/src/pages/instrument/page\.tsx$''',
+  '''^apps/web/src/pages/portfolio/page\.tsx$''',
+  '''^apps/web/src/pages/portfolio/ui/performance-tab\.tsx$''',
+  '''^docs/''',
+  '''^README.*\.md$''',
+  '''^\.env\.example$''',
+  '''^\.github/workflows/ci\.yml$''',
+]
