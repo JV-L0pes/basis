@@ -58,6 +58,7 @@ export const pt = {
 
   "auth.title": "Entrar",
   "auth.subtitle": "Acesse sua mesa de investimentos.",
+  "auth.welcome": "Bem-vindo, {name}",
   "auth.email": "E-mail",
   "auth.password": "Senha",
   "auth.submit": "Entrar",
@@ -255,6 +256,7 @@ export const en: Record<MessageKey, string> = {
 
   "auth.title": "Sign in",
   "auth.subtitle": "Access your investment desk.",
+  "auth.welcome": "Welcome, {name}",
   "auth.email": "E-mail",
   "auth.password": "Password",
   "auth.submit": "Sign in",

@@ -34,7 +34,7 @@ export function LoginForm() {
         accessToken: result.token.access_token,
         expiresIn: result.token.expires_in,
       })
-      toast.success(t("auth.submit"))
+      toast.success(t("auth.welcome", { name: result.user.display_name }))
       await navigate({ to: "/" })
     } catch (error) {
       const problem = toProblem(error)
