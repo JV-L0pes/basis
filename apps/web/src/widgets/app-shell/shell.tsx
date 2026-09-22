@@ -6,13 +6,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Sheet,
-  SheetClose,
-  SheetContent,
 } from "@basis/ui"
 import { ArrowUpRight, CircleHalf } from "@basis/ui/icons"
 import { Link, useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
 import { logout } from "@/entities/session/api"
 import { useSessionStore } from "@/entities/session/store"
 import { env } from "@/shared/config/env"
@@ -32,7 +28,6 @@ export function TopBar() {
   const user = useSessionStore((state) => state.user)
   const clear = useSessionStore((state) => state.clear)
   const toggleTheme = useThemeToggle()
-  const [menuOpen, setMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     try {
@@ -50,10 +45,13 @@ export function TopBar() {
           <Link to="/" className="mark" aria-label={t("app.name")}>
             BS
           </Link>
-          <span className="late mono">{t("app.tagline")}</span>
+          <span className="late mono hidden md:inline">{t("app.tagline")}</span>
         </div>
 
-        <nav className="mono hidden items-center gap-8 md:flex" aria-label={t("nav.menu")}>
+        <nav
+          className="mono flex min-w-0 items-center gap-5 overflow-x-auto md:gap-8"
+          aria-label={t("nav.menu")}
+        >
           {user
             ? NAV.map((item) => (
                 <Link key={item.to} to={item.to} className="roll">
@@ -92,44 +90,6 @@ export function TopBar() {
               {t("auth.submit")}
             </Link>
           )}
-
-          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-            <button
-              type="button"
-              className="sq md:hidden"
-              aria-label={t("nav.menu")}
-              onClick={() => {
-                setMenuOpen(true)
-              }}
-            >
-              ≡
-            </button>
-            <SheetContent side="right" aria-describedby={undefined}>
-              <div className="mb-8 flex items-center justify-between">
-                <span className="mono">{t("nav.menu")}</span>
-                <SheetClose className="sq" aria-label={t("common.close")}>
-                  ×
-                </SheetClose>
-              </div>
-              <nav className="flex flex-col gap-5">
-                {NAV.map((item) => (
-                  <a
-                    key={item.to}
-                    href={item.to}
-                    className="text-2xl font-extrabold tracking-[-0.03em]"
-                    onClick={() => {
-                      setMenuOpen(false)
-                    }}
-                  >
-                    {t(item.key)}
-                  </a>
-                ))}
-              </nav>
-              <div className="mt-8">
-                <LanguageSwitch />
-              </div>
-            </SheetContent>
-          </Sheet>
         </div>
       </div>
     </header>
