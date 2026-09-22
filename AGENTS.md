@@ -33,11 +33,27 @@ pnpm openapi:export && pnpm contracts:generate
 
 No Windows, se `uv` não estiver no PATH: `$env:Path = "C:\Users\<você>\.local\bin;$env:Path"`.
 Para subir a API no Windows use `uv run --directory apps/api python -m basis`
-(psycopg async exige event loop `Selector`).
+(psycopg async exige event loop `Selector`). Em comandos de ida e volta durante o
+desenvolvimento, `uv run --no-sync` pula a checagem do lock e responde na hora.
 
 **Antes de considerar qualquer tarefa concluída:** `ruff`, `mypy`, `lint-imports`
 e `pytest` verdes no backend; `biome`, `lint:eslint`, `knip`, `typecheck` e
 `vitest` verdes no frontend.
+
+---
+
+## Documentação
+
+- Decisão de arquitetura nova ou revisada vira ADR em `docs/adr/000N-slug.md`
+  (contexto → decisão → consequências). O índice vivo é a pasta; não edite ADRs antigos,
+  escreva um novo.
+- Regra de negócio ou de mercado entra em `docs/domain/catalogo.md` (RN/RM) apontando a
+  implementação e o teste que a protege.
+- Operação (ambientes, variáveis, migrações, incidentes) fica em
+  `docs/runbook/operacao.md`.
+- `README.md` (pt), `README.en.md`, `docs/case-study.md` e o `CHANGELOG.md` são material
+  público do portfólio: números precisam ser verificáveis (contagem de testes, latência
+  medida) e o par pt/en precisa andar junto.
 
 ---
 

@@ -99,8 +99,10 @@ materializado, mantendo o extrato como fonte da verdade.
 3. domínio é Python puro (sem SQLAlchemy, FastAPI, Pydantic ou structlog);
 4. cada contexto respeita sua própria ordem de camadas.
 
-No frontend, `biome` cobre estilo e lint; a estrutura FSD é sustentada por
-convenção e revisão (o custo de um plugin de fronteiras não se paga neste porte).
+No frontend, a direção do FSD é verificada pelo ESLint (regra `no-restricted-imports`
+configurada camada a camada em `eslint.config.mjs`), ao lado de acessibilidade, ciclo de
+imports e Biome para estilo. Quando `shared` precisa de algo de camada superior, o `app`
+injeta (ver `configureAuth`).
 
 ---
 
@@ -144,8 +146,11 @@ formato de símbolo, cache TTL e fallback:
 | BCB SGS | Selic, CDI, IPCA, USD/BRL | dados oficiais do Banco Central |
 | Seed | tudo | determinístico, usado em testes e quando `ALLOW_LIVE_PROVIDERS=false` |
 
-Falha de provider nunca vira erro 500: o roteador registra um aviso e cai para o
-provider determinístico, mantendo a aplicação utilizável offline.
+A resposta HTTP é servida imediatamente com a última série em cache (ou a
+determinística, no primeiro acesso) enquanto o provider real atualiza esse cache em
+background — stale-while-revalidate, ver ADR 0007. Falha de provider nunca vira erro
+500: o roteador registra um aviso e cai para o provider determinístico, mantendo a
+aplicação utilizável offline.
 
 ---
 
@@ -155,7 +160,12 @@ provider determinístico, mantendo a aplicação utilizável offline.
 - Access token JWT curto (15 min) mantido **apenas em memória** no frontend;
   refresh token opaco, rotativo, persistido como SHA-256 e entregue em cookie
   `httpOnly` + `SameSite=Lax` (caminho restrito a `/api/v1/auth`).
-- Reuso de refresh token revoga toda a família de sessões (resposta a roubo).
+- Reuso de refresh token revoga toda a família de sessões (resposta a roubo), com uma
+  janela de graça de 30 s para rotações legítimas quase simultâneas (duas abas,
+  StrictMode) — ver ADR 0008.
+- Cadastro aberto pela própria interface: o primeiro usuário faz bootstrap como
+  administrador e os demais entram como `advisor` (decisão de produto para um case de
+  portfólio; um convite obrigatório seria a evolução natural).
 - Login com tempo equalizado (hash fictício quando o e-mail não existe) para
   evitar enumeração de contas.
 - Erros de domínio não vazam stack; detalhes técnicos só com `BASIS_DEBUG=true`.

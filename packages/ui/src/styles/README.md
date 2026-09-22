@@ -1,71 +1,63 @@
 # Ink — classes públicas
 
-O sistema Ink vive em dois arquivos e um ponto de entrada:
+O sistema Ink vive em três arquivos:
 
-- `src/styles.css` — único arquivo que a aplicação importa (`@import "@basis/ui/styles.css";`).
-  Ele carrega as fontes (Archivo com eixo `wdth` + Martian Mono), o Tailwind v4, os tokens e as classes.
+- `src/styles.css` — único ponto de entrada que a aplicação importa (`@import "@basis/ui/styles.css"`).
+  Carrega as fontes (Archivo com eixo `wdth` + Martian Mono), o Tailwind v4, os tokens e as classes.
 - `src/styles/tokens.css` — `:root` / `:root[data-theme="dark"]`, o bloco `@theme inline`
-  (cores, fontes, `--breakpoint-xs: 500px`), estilos base de elemento e `.tnum`.
-- `src/styles/ink.css` — as classes de componente abaixo.
+  (cores, fontes, `--breakpoint-xs: 500px`), a paleta categórica de gráficos, estilos base de
+  elemento e `.tnum`.
+- `src/styles/ink.css` — as classes de componente documentadas abaixo.
 
 ## Estrutura e layout
 
 | Classe | Uso |
 | --- | --- |
 | `.shell` | Container central de no máximo 96rem com gutter fluido. |
-| `.bar` | Barra fixa do topo; combina com `.bar-in` (64px) e `.stuck` (borda de 1px ao rolar). |
+| `.bar` | Barra fixa do topo; combina com `.bar-in` (64px) e `.stuck` (borda de 1px). |
 | `.mark` | Logotipo quadrado ink/paper de 34px; gira −90° no hover. |
-| `.late` | Nome que aparece na barra só depois do `.stuck`. |
+| `.late` | Texto que cresce na barra quando ela está `.stuck`. |
 | `.seg` | Grupo de botões segmentados; `aria-pressed="true"` preenche em ink. |
 | `.sq` | Botão quadrado de 34px com borda ink que inverte no hover. |
-| `.hero`, `.hero-grid`, `.hero-main`, `.hero-role`, `.hero-cta` | Grade editorial do topo da página. |
-| `.giant` | Título de clamp(3.6rem, 11vw, 12.5rem) com paralaxe de scroll nativa. |
-| `.lede` | Parágrafo de abertura em ash com no máximo 42ch. |
-| `.rail`, `.rail-links` | Trilho lateral de informações com links sublinhados. |
-| `.media` | Imagem de recorte 1:1 em grayscale (antigo `.portrait` do portfólio). |
-| `.lab` | Rótulo mono uppercase em ash acima de um bloco. |
-| `.sec-head` | Cabeçalho de seção com regra de 2px e kicker mono. |
-| `.cat`, `.cat-rail` | Grade categoria + conteúdo; trilho fixo (sticky) a partir de 960px. |
-| `.rule-top`, `.tail` | Regras de 1px que se desenham com `animation-timeline: view()`. |
+| `.sec-head` | Cabeçalho de seção com regra de 2px + `.kicker` mono. |
+| `.panel`, `.panel-head`, `.panel-body` | Painel plano: borda de 1px, cabeçalho com divisor. |
+| `.pill` | Botão arredondado (o único raio 999px do sistema) que inverte no hover. |
+| `.plain` | Ação discreta com sublinhado de 1px que escurece no hover. |
+| `.grid-lines` | Fundo com grade de fios de 1px, para áreas vazias. |
+| `.skeleton` | Placeholder animado no tom de `--rule` (respeita `prefers-reduced-motion`). |
+| `.foot`, `.foot-grid` | Rodapé de três colunas a partir de 760px. |
 
-## Texto, listas e revelações
+## Tipografia
 
 | Classe | Uso |
 | --- | --- |
-| `.mono` | Micro-rótulo mono uppercase de 0.62rem com tracking 0.14em. |
-| `.wide` | Archivo com `wdth` 125 para chamadas largas. |
-| `.num` / `.tnum` | Números tabulares (`.num` é o alias histórico do portfólio). |
-| `.line` | Máscara de revelação linha a linha; o `span` interno entra de baixo. |
-| `.fade` | Fade + translateY de 16px controlado por `.on`. |
-| `.on` | Estado revelado para `.line` e `.fade` (aplicado por `useReveal`). |
-| `.roll` | Rolagem vertical de texto em links de navegação. |
-| `.pill` | CTA arredondado (999px) ink/paper que inverte no hover. |
-| `.plain` | Link sublinhado com borda que escurece no hover. |
-| `.arw` | Seta que gira −45° no hover do link pai. |
-| `.dec` | Lista de decisões com marcadores em `--rule`. |
-| `.impact` | Bloco de impacto com rótulo dourado (`.impact .lbl`) sobre regra de 1px. |
-| `.live` | Indicador de status ao vivo: ponto dourado + texto dourado. |
-| `.led` | Linha de ledger de experiência (trilho + prosa) com hover de fundo. |
-| `.more`, `.more .ext` | Lista de projetos com seta diagonal no canto. |
-| `.close` | Seção de fecho invertida (fundo ink, texto paper). |
-| `.foot`, `.foot-grid`, `.foot-bar`, `.colo`, `.totop` | Rodapé editorial com barra final e "voltar ao topo". |
-| `.prog` | Barra de progresso de leitura fixa de 2px. |
-| `.band`, `.band-track`, `.band .sep`, `.sr-only` | Faixa marquee infinita e utilitário de leitura assistiva. |
+| `.mono` | Micro-rótulo em Martian Mono: 0.62rem, uppercase, tracking .14em. |
+| `.wide` | `font-variation-settings: 'wdth' 125` (assinatura da marca). |
+| `.giant` | Título de clamp(3rem, 9vw, 8rem) com `wdth` 125 e tracking negativo. |
+| `.lede` | Parágrafo de abertura em ash com no máximo 46ch. |
+| `.kicker` | Rótulo mono de seção em ash. |
+| `.tnum` | Numerais tabulares para tabelas e métricas. |
 
-## Adições Basis
+## Dados
 
 | Classe | Uso |
 | --- | --- |
-| `.ledger` | Tabela financeira: cabeçalho mono sobre regra de 2px, linhas de 1px, números tabulares e hover. |
-| `.ledger .pos` / `.ledger .neg` | Ganho (positive) e perda (destructive) — nunca decorativos. |
-| `.ledger .right` | Alinha colunas numéricas à direita. |
-| `.metric` + `.metric-label` / `.metric-value` / `.metric-delta` | Bloco de KPI: rótulo mono, valor em display 800 com `wdth` 112 e delta opcional `.pos` / `.neg`. |
-| `.grid-lines` | Fundo de painel com grade de fios de 1px em `--rule` (`--grid-size`, padrão 3rem). |
-| `.chip` | Etiqueta quadrada de 1px com borda ink e texto mono uppercase. |
-| `.skeleton` | Shimmer Ink baseado em `--rule` com guarda de movimento reduzido. |
+| `.ledger` | Tabela financeira: cabeçalho mono sobre regra de 2px, linhas de 1px, hover em `--hover-bg`. |
+| `.ledger .num` | Coluna numérica alinhada à direita em Martian Mono. |
+| `.ledger .pos` / `.ledger .neg` | Valores positivos em verde, negativos em vermelho. |
+| `.metric`, `.metric-label`, `.metric-value`, `.metric-delta` | Bloco de KPI; o valor escala com a viewport e usa numerais tabulares. |
+| `.chip` (`.gold`, `.muted`) | Etiqueta quadrada de status. |
+| `.live` | Marcador com quadrado dourado de 7px, reservado a sinal/valor. |
 
 ## Movimento
 
-`@media (prefers-reduced-motion: reduce)` desliga animações, transições e scroll suave.
-`@media (pointer: coarse)` garante alvos de toque de pelo menos 24px (34px para `.sq` e `.seg`).
-`.grid-lines`, `.skeleton` e as animações de timeline respeitam as duas regras.
+| Classe | Uso |
+| --- | --- |
+| `.line` / `.line > span` | Reveal por máscara (o `<span>` sobe 108% e a classe `.on` revela). |
+| `.fade` / `.fade.on` | Fade + 16px de subida, revelado por `useReveal`. |
+| `.roll` | Rolagem de duas cópias do texto no hover (usado na navegação). |
+| `.arw` | Seta que desliza e gira −45° no hover. |
+
+> Todo o movimento é desligado sob `prefers-reduced-motion: reduce`. O dourado
+> (`--gold`/`--gold-fill`) é reservado a estado/valor; a paleta categórica
+> (`--chart-1..8`) existe apenas para gráficos de distribuição.

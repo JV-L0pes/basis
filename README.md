@@ -1,149 +1,108 @@
 # Basis
 
-Plataforma de gestão de investimentos para o mercado financeiro brasileiro — clientes,
-carteiras, posições, performance, risco e dados de mercado em um único monolito
-modular com frontend próprio.
+> Plataforma de gestão de investimentos para o mercado brasileiro — clientes, carteiras,
+> extrato, posições, performance, risco e dados de mercado em um monolito modular com
+> frontend próprio.
 
-> **Status:** walking skeleton completo. Backend com 439 testes (domínio,
-> integração e API), frontend com 35 testes (design system, i18n, formulários) e
-> 8 contratos de arquitetura verificados em CI.
+[![CI](https://github.com/JV-L0pes/Investment-Management-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/JV-L0pes/Investment-Management-Platform/actions/workflows/ci.yml)
 
----
+**English:** [README.en.md](README.en.md) — Basis is an investment management platform for the Brazilian market: a DDD modular monolith (FastAPI + SQLAlchemy) with a React/Vite SPA built on the "Ink" design system, live market data with a deterministic fallback, and financial mathematics (TWR, XIRR, risk metrics, rebalancing) covered by 519 tests.
 
-## Visão geral
-
-| Área | O que existe hoje |
-| --- | --- |
-| **Identidade** | Registro, login com Argon2id, JWT de acesso + refresh rotativo com detecção de reuso, papéis (admin/advisor/viewer), change-password com revogação de sessões |
-| **Clientes** | Cadastro com validação real de CPF/CNPJ (dígitos verificadores), questionário de suitability (5–10 respostas → perfil conservador/moderado/arrojado), busca, filtro por situação, arquivamento reversível |
-| **Carteiras** | Abertura por cliente, moeda base, alocação alvo em basis points (soma exata de 100%), extrato de compras/vendas/dividendos/juros/taxas, posições derivadas do extrato por custo médio ponderado, valuação mark-to-market |
-| **Mercado** | Catálogo de instrumentos (ISIN com Luhn, MIC ISO 10383, CFI ISO 10962), cotações com cache TTL e fallback determinístico, séries macro do BCB (Selic, CDI, IPCA, USD/BRL), candles/histórico |
-| **Analytics** | TWR, XIRR, volatilidade anualizada, Sharpe, beta, drawdown máximo, VaR 95%, alocação atual vs. alvo, drift em basis points e plano de rebalanceamento |
-| **Design** | Sistema "Ink" (tipografia editorial, hairlines, zero sombras) em `@basis/ui`, tema claro/escuro, i18n PT/EN com paridade tipada |
-| **Qualidade** | Ruff (com bandit/S/B/TRY) + mypy strict + import-linter (fronteiras entre contextos) no Python; Biome (formatação/lint) + ESLint type-aware (sonarjs, jsx-a11y, react-hooks, ciclos de import, regras de FSD por camada) + Knip (código morto) no TypeScript |
+> Codename interno: `basis` (pacotes `@basis/*`, pacote Python `basis`, envs `BASIS_*`).
 
 ---
+
+## O que é isto
+
+O projeto nasceu como um case de processo seletivo (Fastify + Prisma + Next.js, catálogo de ativos *hardcoded*, nenhum teste) e foi reescrito como uma ferramenta de mercado de verdade. O diagnóstico e as decisões estão no [case study](docs/case-study.md).
+
+- **Clientes**: CPF/CNPJ validados de verdade (dígitos verificadores), questionário de suitability que gera perfil de risco, busca, arquivamento reversível.
+- **Carteiras**: extrato *append-only* de compras, vendas, proventos e taxas; posições derivadas por custo médio ponderado (nunca dessincronizadas do extrato); alocação alvo em basis points; valoração mark-to-market com P&L por posição.
+- **Mercado**: catálogo com ISIN/MIC/CFI, cotações de **brapi.dev**, **Yahoo Finance** e **BCB SGS** com cache e fallback determinístico, séries macro (Selic, CDI, IPCA, USD/BRL) e histórico para gráficos.
+- **Analytics**: TWR, XIRR, volatilidade anualizada, Sharpe (Selic como taxa livre de risco), beta vs. Ibovespa, drawdown máximo, VaR 95%, drift de alocação em bps e plano de rebalanceamento.
+- **Identidade**: Argon2id, access token curto em memória, refresh opaco rotativo em cookie httpOnly com detecção de reuso, papéis admin/advisor/viewer.
+- **Interface**: SPA em React 19 sobre o design system **Ink** (tipografia editorial, hairlines, zero sombra), tema claro/escuro, i18n PT/EN e gráficos em SVG próprio.
 
 ## Arquitetura
 
-Monorepo poliglota, monolito modular no backend e Feature-Sliced Design no
-frontend. O detalhamento está em [`ARCHITECTURE.md`](./ARCHITECTURE.md).
-
 ```
-investment-management-platform/
-├─ apps/
-│  ├─ api/                          # FastAPI — monolito modular (DDD)
-│  │  └─ src/basis/
-│  │     ├─ kernel/                 # shared kernel: Money, Currency, Entity, eventos, DB, HTTP
-│  │     └─ modules/                # bounded contexts
-│  │        ├─ identity/            # autenticação, usuários, sessões
-│  │        ├─ clients/              # investidores, CPF/CNPJ, suitability
-│  │        ├─ portfolio/            # carteiras, extrato, posições, valuação
-│  │        ├─ market_data/          # instrumentos, cotações, macro, providers
-│  │        └─ analytics/            # performance, risco, alocação, rebalanceamento
-│  └─ web/                          # Vite + React 19 — FSD
-│     └─ src/{app,pages,widgets,features,entities,shared}
-├─ packages/
-│  ├─ ui/                           # design system Ink + primitivos shadcn-style + charts
-│  └─ contracts/                    # OpenAPI 3.1 → tipos TypeScript
-├─ ops/                             # init do Postgres
-└─ .github/workflows/ci.yml
+apps/api   FastAPI + SQLAlchemy 2 async (DDD modular: identity, clients, portfolio, market_data, analytics)
+apps/web   React 19 + Vite + Tailwind v4 + TanStack Query/Router (Feature-Sliced Design)
+packages/  ui (design system Ink) · contracts (OpenAPI 3.1 -> TypeScript)
+docs/      ADRs, case study, catálogo de regras, runbook
 ```
 
-Cada contexto tem quatro camadas — `domain`, `application`, `infrastructure`,
-`presentation` — com dependências apontando para dentro. O `import-linter`
-**quebra o build** se um domínio importar outro contexto, SQLAlchemy, FastAPI ou
-Pydantic.
+Cada contexto tem `domain` / `application` / `infrastructure` / `presentation`, integra por contratos publicados e eventos, e **não** importa as tabelas ou entidades de outro contexto — regra verificada por 8 contratos de `import-linter` no CI. Detalhes em [ARCHITECTURE.md](ARCHITECTURE.md), decisões em [`docs/adr/`](docs/adr/), regras rastreáveis em [`docs/domain/catalogo.md`](docs/domain/catalogo.md) e operação em [`docs/runbook/operacao.md`](docs/runbook/operacao.md).
 
----
-
-## Stack
-
-| Camada | Escolhas |
-| --- | --- |
-| Backend | Python 3.14, FastAPI, SQLAlchemy 2 (async), Alembic, PostgreSQL 16, Pydantic v2, structlog, PyJWT, Argon2id, httpx + tenacity |
-| Frontend | Vite 6, React 19, TypeScript strict, TanStack Query + Router, openapi-fetch, react-hook-form + zod, Tailwind v4, Radix primitives, lightweight-charts |
-| Infra | Docker Compose (Postgres + api + web/nginx), GitHub Actions, Dependabot, pre-commit + gitleaks |
-
----
-
-## Como rodar
+## Rodando localmente
 
 Pré-requisitos: Docker, Node 22+, pnpm 9+, Python 3.13+ e [uv](https://docs.astral.sh/uv/).
 
 ```bash
-# 1. Configuração
-cp .env.example .env          # ajuste BASIS_SECRET_KEY e credenciais
+cp .env.example .env                              # ajuste BASIS_SECRET_KEY e a senha do admin
+docker compose up -d db                           # Postgres 16 (+ basis_test)
 
-# 2. Banco
-docker compose up -d db
-
-# 3. Backend
 uv sync --directory apps/api
 uv run --directory apps/api alembic upgrade head
-uv run --directory apps/api python -m basis.scripts.seed --demo
-uv run --directory apps/api uvicorn basis.main:app --reload --port 8000
-#   API:   http://localhost:8000/docs
-#   Health: http://localhost:8000/api/v1/health
+uv run --directory apps/api python -m basis.scripts.seed --demo   # catálogo + admin + demo
+uv run --directory apps/api python -m basis                       # API :8100 (/docs)
 
-# 4. Frontend
 pnpm install
-pnpm --filter @basis/web dev   # http://localhost:5173
+pnpm --filter @basis/web dev                                      # web :5174
 ```
 
-Usuário criado pelo seed: `admin@basis.dev` (senha em `BASIS_AUTH__BOOTSTRAP_ADMIN_PASSWORD`).
-Os dados de demonstração criam três clientes, três carteiras e lançamentos.
+Acesso local: `admin@basis.dev` com a senha definida em `BASIS_AUTH__BOOTSTRAP_ADMIN_PASSWORD` — ou **crie a sua própria conta na tela de acesso** (entrar/criar conta; o primeiro usuário vira admin, os seguintes entram como advisor). O seed `--demo` cria três clientes com estratégias diferentes e **12 meses de histórico** (aportes mensais, proventos trimestrais e uma venda parcial), então os gráficos e as métricas de performance têm o que mostrar.
 
-> **Windows:** psycopg async exige event loop `Selector`. Use
-> `uv run --directory apps/api python -m basis` (entrypoint que configura o loop)
-> ou `pnpm --filter @basis/web dev` normalmente. No Linux/Docker o uvicorn padrão funciona.
+> **Windows:** o psycopg async exige event loop `Selector`; use `python -m basis` (entrypoint que configura o loop). No Linux/Docker o `uvicorn` padrão funciona.
+> **Portas:** os padrões são `8000` (API), `5173` (web) e `5432` (banco); o `.env` permite trocar (`BASIS_PORT`, `BASIS_DB_PORT`) quando houver conflito local.
 
 ### Tudo com Docker
 
 ```bash
-docker compose --profile full up --build   # web em http://localhost:5173
+docker compose --profile full up --build     # web em http://localhost:5173
 ```
 
----
+## Qualidade
 
-## Comandos
+```bash
+pnpm turbo run lint typecheck test build     # web + design system + contratos
+pnpm check                                   # Biome (formatação e lint base)
+pnpm lint:eslint                             # ESLint type-aware: a11y, hooks, ciclos, FSD
+pnpm knip                                    # código e dependências mortas
 
-| Comando | O que faz |
-| --- | --- |
-| `pnpm dev` | Frontend + tasks do Turborepo em modo dev |
-| `pnpm build` / `pnpm typecheck` / `pnpm test` / `pnpm lint` | Pipeline completo do frontend |
-| `pnpm check` | Biome (format + lint) em todo o monorepo |
-| `pnpm lint:eslint` | ESLint type-aware (a11y, segurança, FSD, testes) |
-| `pnpm knip` | Detecção de código e dependências mortas |
-| `pnpm py:lint` / `pnpm py:typecheck` / `pnpm py:test` | Ruff, mypy e pytest do backend |
-| `pnpm db:migrate` / `pnpm db:seed` | Alembic e seed (use `-- --demo` para dados de exemplo) |
-| `pnpm openapi:export` / `pnpm openapi:check` | Exporta/valida o contrato consumido pelo frontend |
-| `pnpm contracts:generate` | Gera os tipos TypeScript a partir do OpenAPI |
+uv run --directory apps/api ruff check .
+uv run --directory apps/api mypy src tests
+uv run --directory apps/api lint-imports     # fronteiras entre bounded contexts
+uv run --directory apps/api pytest           # 470 testes (domínio, integração, HTTP)
+```
 
----
+São **519 testes**: 470 na API, 25 no web (páginas com MSW, login, i18n) e 24 no design system. O CI roda tudo isso, aplica as migrações Alembic em um Postgres real, valida o contrato OpenAPI e ainda executa `gitleaks` e `pip-audit`.
 
-## Padrões e convenções
+## Dados de mercado
 
-- **Dinheiro nunca é float.** `Decimal` no Python (`NUMERIC(28,10)` no Postgres) e
-  string no JSON; o frontend faz arredondamento apenas para exibição.
-- **Arredondamento** bancário (half-even) na menor unidade da moeda; divisões de
-  custo médio são limitadas a 12 casas no kernel.
-- **Datas**: ISO 8601 / RFC 3339 em UTC; `Clock` injetado — o domínio nunca chama
-  `datetime.now`.
-- **Identificadores**: UUIDv7 (ordenados por tempo) para chaves primárias.
-- **Identificação de ativos**: ISIN (ISO 6166, com Luhn), MIC (ISO 10383), CFI (ISO 10962).
-- **Erros HTTP**: RFC 9457 (`application/problem+json`) com `code` estável e
-  `X-Request-ID` em toda resposta.
-- **Paginação**: cursor opaco (keyset) para clientes, carteiras e instrumentos.
-- **Eventos de domínio** publicados após o commit via barramento in-process.
-- **API**: OpenAPI 3.1 gerado pelo FastAPI e versionado em `packages/contracts`.
+Com `BASIS_MARKET_DATA__ALLOW_LIVE_PROVIDERS=true` (padrão), a resposta sai **imediatamente** com a série determinística e o provedor real atualiza o cache em background — a tela nunca espera por uma API externa. O painel mostra `ao vivo` quando a origem não é o seed. Com `false`, tudo funciona offline com preços estáveis (útil para testes e demonstrações).
 
-Convenções de código e fluxo de trabalho para agentes e pessoas estão em
-[`AGENTS.md`](./AGENTS.md). Decisões de arquitetura e padrões do mercado
-financeiro (TWR/XIRR, day count, alocação) estão em [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+## Estrutura de pastas
 
----
+```
+apps/api/src/basis/
+  kernel/           shared kernel (Money, Currency, Entity, eventos, DB, HTTP)
+  modules/
+    identity/       usuários, sessões, papéis
+    clients/        investidores, CPF/CNPJ, suitability
+    portfolio/      carteiras, extrato, posições, alvos
+    market_data/    instrumentos, cotações, macro, provedores
+    analytics/      performance, risco, alocação, rebalanceamento
+apps/web/src/       app · pages · widgets · features · entities · shared   (FSD)
+packages/ui/        design system Ink + primitivos + gráficos
+packages/contracts/ openapi.json + tipos gerados
+```
+
+## Roadmap
+
+- **Próximos passos**: multi-moeda com PTAX, renda fixa com curva/PU e day count BUS/252, snapshots materializados de posição, Open Finance/CVM e observabilidade (OpenTelemetry).
+- **Fora de escopo por enquanto**: negociação/ordens, multi-tenant com times, notificações e exportação de relatórios.
 
 ## Licença
 
-MIT.
+MIT — veja [LICENSE](LICENSE). Autor: João Victor Lopes ([JV-L0pes](https://github.com/JV-L0pes)).
