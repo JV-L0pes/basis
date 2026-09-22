@@ -74,7 +74,9 @@
             "type": "array"
           }
         },
-        "required": ["answers"],
+        "required": [
+          "answers"
+        ],
         "title": "AssessSuitabilityRequest",
         "type": "object"
       },
@@ -104,7 +106,10 @@
             "$ref": "#/components/schemas/UserResponse"
           }
         },
-        "required": ["user", "token"],
+        "required": [
+          "user",
+          "token"
+        ],
         "title": "AuthResponse",
         "type": "object"
       },
@@ -130,7 +135,12 @@
             "type": "string"
           }
         },
-        "required": ["portfolio_count", "total_market_value", "allocation", "currency"],
+        "required": [
+          "portfolio_count",
+          "total_market_value",
+          "allocation",
+          "currency"
+        ],
         "title": "BookOverviewResponse",
         "type": "object"
       },
@@ -149,7 +159,10 @@
             "type": "string"
           }
         },
-        "required": ["current_password", "new_password"],
+        "required": [
+          "current_password",
+          "new_password"
+        ],
         "title": "ChangePasswordRequest",
         "type": "object"
       },
@@ -174,7 +187,9 @@
             "title": "Next Cursor"
           }
         },
-        "required": ["items"],
+        "required": [
+          "items"
+        ],
         "title": "ClientListResponse",
         "type": "object"
       },
@@ -252,7 +267,10 @@
         "type": "object"
       },
       "ClientStatus": {
-        "enum": ["active", "archived"],
+        "enum": [
+          "active",
+          "archived"
+        ],
         "title": "ClientStatus",
         "type": "string"
       },
@@ -311,7 +329,10 @@
             "type": "string"
           }
         },
-        "required": ["date", "value"],
+        "required": [
+          "date",
+          "value"
+        ],
         "title": "EquityPointResponse",
         "type": "object"
       },
@@ -330,7 +351,11 @@
             "type": "number"
           }
         },
-        "required": ["asset_class", "value", "weight"],
+        "required": [
+          "asset_class",
+          "value",
+          "weight"
+        ],
         "title": "ExposureResponse",
         "type": "object"
       },
@@ -366,7 +391,12 @@
             "type": "string"
           }
         },
-        "required": ["status", "version", "environment", "timestamp"],
+        "required": [
+          "status",
+          "version",
+          "environment",
+          "timestamp"
+        ],
         "title": "HealthStatus",
         "type": "object"
       },
@@ -391,7 +421,9 @@
             "title": "Next Cursor"
           }
         },
-        "required": ["items"],
+        "required": [
+          "items"
+        ],
         "title": "InstrumentListResponse",
         "type": "object"
       },
@@ -485,7 +517,10 @@
             "type": "string"
           }
         },
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "title": "LoginRequest",
         "type": "object"
       },
@@ -513,13 +548,24 @@
             "type": "string"
           }
         },
-        "required": ["code", "label", "unit", "date", "value"],
+        "required": [
+          "code",
+          "label",
+          "unit",
+          "date",
+          "value"
+        ],
         "title": "MacroPointResponse",
         "type": "object"
       },
       "MacroSeriesCode": {
         "description": "Brazilian macro series published by the BCB SGS system.",
-        "enum": ["selic", "cdi", "ipca", "usd_brl"],
+        "enum": [
+          "selic",
+          "cdi",
+          "ipca",
+          "usd_brl"
+        ],
         "title": "MacroSeriesCode",
         "type": "string"
       },
@@ -554,7 +600,12 @@
             "type": "array"
           }
         },
-        "required": ["macro", "quotes", "gainers", "losers"],
+        "required": [
+          "macro",
+          "quotes",
+          "gainers",
+          "losers"
+        ],
         "title": "MarketOverviewResponse",
         "type": "object"
       },
@@ -579,7 +630,10 @@
             "type": "string"
           }
         },
-        "required": ["client_id", "name"],
+        "required": [
+          "client_id",
+          "name"
+        ],
         "title": "OpenPortfolioRequest",
         "type": "object"
       },
@@ -790,7 +844,9 @@
             "title": "Next Cursor"
           }
         },
-        "required": ["items"],
+        "required": [
+          "items"
+        ],
         "title": "PortfolioListResponse",
         "type": "object"
       },
@@ -871,7 +927,10 @@
         "type": "object"
       },
       "PortfolioStatus": {
-        "enum": ["active", "archived"],
+        "enum": [
+          "active",
+          "archived"
+        ],
         "title": "PortfolioStatus",
         "type": "string"
       },
@@ -1080,7 +1139,11 @@
             "type": "string"
           }
         },
-        "required": ["date", "close", "currency"],
+        "required": [
+          "date",
+          "close",
+          "currency"
+        ],
         "title": "PricePointResponse",
         "type": "object"
       },
@@ -1120,7 +1183,13 @@
             "type": "string"
           }
         },
-        "required": ["symbol", "price", "currency", "as_of", "source"],
+        "required": [
+          "symbol",
+          "price",
+          "currency",
+          "as_of",
+          "source"
+        ],
         "title": "QuoteResponse",
         "type": "object"
       },
@@ -1147,7 +1216,13 @@
             "type": "string"
           }
         },
-        "required": ["status", "version", "environment", "timestamp", "database"],
+        "required": [
+          "status",
+          "version",
+          "environment",
+          "timestamp",
+          "database"
+        ],
         "title": "ReadinessStatus",
         "type": "object"
       },
@@ -1170,7 +1245,12 @@
             "type": "integer"
           }
         },
-        "required": ["asset_class", "action", "amount", "drift_bps"],
+        "required": [
+          "asset_class",
+          "action",
+          "amount",
+          "drift_bps"
+        ],
         "title": "RebalanceTradeResponse",
         "type": "object"
       },
@@ -1193,7 +1273,13 @@
             "title": "Fees"
           },
           "kind": {
-            "enum": ["buy", "sell", "dividend", "interest", "fee"],
+            "enum": [
+              "buy",
+              "sell",
+              "dividend",
+              "interest",
+              "fee"
+            ],
             "title": "Kind",
             "type": "string"
           },
@@ -1249,7 +1335,13 @@
             "type": "string"
           }
         },
-        "required": ["symbol", "kind", "trade_date", "quantity", "price"],
+        "required": [
+          "symbol",
+          "kind",
+          "trade_date",
+          "quantity",
+          "price"
+        ],
         "title": "RecordTransactionRequest",
         "type": "object"
       },
@@ -1320,7 +1412,11 @@
             "type": "string"
           }
         },
-        "required": ["name", "email", "tax_id"],
+        "required": [
+          "name",
+          "email",
+          "tax_id"
+        ],
         "title": "RegisterClientRequest",
         "type": "object"
       },
@@ -1354,7 +1450,11 @@
             "type": "string"
           }
         },
-        "required": ["email", "password", "display_name"],
+        "required": [
+          "email",
+          "password",
+          "display_name"
+        ],
         "title": "RegisterRequest",
         "type": "object"
       },
@@ -1367,7 +1467,9 @@
             "type": "string"
           }
         },
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "title": "RenamePortfolioRequest",
         "type": "object"
       },
@@ -1396,7 +1498,10 @@
             "type": "integer"
           }
         },
-        "required": ["score", "profile"],
+        "required": [
+          "score",
+          "profile"
+        ],
         "title": "SuitabilityResponse",
         "type": "object"
       },
@@ -1424,7 +1529,10 @@
             "type": "integer"
           }
         },
-        "required": ["asset_class", "weight_bps"],
+        "required": [
+          "asset_class",
+          "weight_bps"
+        ],
         "title": "TargetWeightRequest",
         "type": "object"
       },
@@ -1443,7 +1551,11 @@
             "type": "number"
           }
         },
-        "required": ["asset_class", "weight_bps", "weight_percent"],
+        "required": [
+          "asset_class",
+          "weight_bps",
+          "weight_percent"
+        ],
         "title": "TargetWeightResponse",
         "type": "object"
       },
@@ -1466,7 +1578,10 @@
             "type": "string"
           }
         },
-        "required": ["access_token", "expires_in"],
+        "required": [
+          "access_token",
+          "expires_in"
+        ],
         "title": "TokenResponse",
         "type": "object"
       },
@@ -1590,7 +1705,9 @@
             "type": "string"
           }
         },
-        "required": ["display_name"],
+        "required": [
+          "display_name"
+        ],
         "title": "UpdateProfileRequest",
         "type": "object"
       },
@@ -1620,12 +1737,23 @@
             "type": "boolean"
           },
           "role": {
-            "enum": ["admin", "advisor", "viewer"],
+            "enum": [
+              "admin",
+              "advisor",
+              "viewer"
+            ],
             "title": "Role",
             "type": "string"
           }
         },
-        "required": ["id", "email", "display_name", "role", "is_active", "created_at"],
+        "required": [
+          "id",
+          "email",
+          "display_name",
+          "role",
+          "is_active",
+          "created_at"
+        ],
         "title": "UserResponse",
         "type": "object"
       },
@@ -1661,7 +1789,11 @@
             "type": "string"
           }
         },
-        "required": ["loc", "msg", "type"],
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
         "title": "ValidationError",
         "type": "object"
       }
@@ -1702,7 +1834,9 @@
           }
         ],
         "summary": "Aggregated view of every portfolio (AUM and allocation)",
-        "tags": ["analytics"]
+        "tags": [
+          "analytics"
+        ]
       }
     },
     "/api/v1/analytics/portfolios/{portfolio_id}/allocation": {
@@ -1748,7 +1882,9 @@
           }
         ],
         "summary": "Allocation, drift against targets and rebalancing plan",
-        "tags": ["analytics"]
+        "tags": [
+          "analytics"
+        ]
       }
     },
     "/api/v1/analytics/portfolios/{portfolio_id}/performance": {
@@ -1828,7 +1964,9 @@
           }
         ],
         "summary": "Time-weighted and money-weighted performance with risk metrics",
-        "tags": ["analytics"]
+        "tags": [
+          "analytics"
+        ]
       }
     },
     "/api/v1/auth/login": {
@@ -1867,7 +2005,9 @@
           }
         },
         "summary": "Authenticate with e-mail and password",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/v1/auth/logout": {
@@ -1924,7 +2064,9 @@
           }
         },
         "summary": "Revoke the current session",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/v1/auth/logout-all": {
@@ -1941,7 +2083,9 @@
           }
         ],
         "summary": "Revoke every session of the current user",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/v1/auth/me": {
@@ -1965,7 +2109,9 @@
           }
         ],
         "summary": "Current user profile",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       },
       "patch": {
         "operationId": "update_me_api_v1_auth_me_patch",
@@ -2007,7 +2153,9 @@
           }
         ],
         "summary": "Update the current user profile",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/v1/auth/me/change-password": {
@@ -2044,7 +2192,9 @@
           }
         ],
         "summary": "Change the current user password (revokes all sessions)",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/v1/auth/refresh": {
@@ -2108,7 +2258,9 @@
           }
         },
         "summary": "Rotate the refresh token",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/v1/auth/register": {
@@ -2147,7 +2299,9 @@
           }
         },
         "summary": "Register a new user (the first one becomes an admin)",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/v1/clients": {
@@ -2245,7 +2399,9 @@
           }
         ],
         "summary": "List clients with search, status filter and cursor pagination",
-        "tags": ["clients"]
+        "tags": [
+          "clients"
+        ]
       },
       "post": {
         "operationId": "register_client_api_v1_clients_post",
@@ -2287,7 +2443,9 @@
           }
         ],
         "summary": "Register a new client",
-        "tags": ["clients"]
+        "tags": [
+          "clients"
+        ]
       }
     },
     "/api/v1/clients/{client_id}": {
@@ -2333,7 +2491,9 @@
           }
         ],
         "summary": "Get a client",
-        "tags": ["clients"]
+        "tags": [
+          "clients"
+        ]
       },
       "patch": {
         "operationId": "update_client_api_v1_clients__client_id__patch",
@@ -2387,7 +2547,9 @@
           }
         ],
         "summary": "Update client details",
-        "tags": ["clients"]
+        "tags": [
+          "clients"
+        ]
       }
     },
     "/api/v1/clients/{client_id}/archive": {
@@ -2433,7 +2595,9 @@
           }
         ],
         "summary": "Archive a client",
-        "tags": ["clients"]
+        "tags": [
+          "clients"
+        ]
       }
     },
     "/api/v1/clients/{client_id}/reactivate": {
@@ -2479,7 +2643,9 @@
           }
         ],
         "summary": "Reactivate a client",
-        "tags": ["clients"]
+        "tags": [
+          "clients"
+        ]
       }
     },
     "/api/v1/clients/{client_id}/suitability": {
@@ -2535,7 +2701,9 @@
           }
         ],
         "summary": "Re-assess the client's suitability profile",
-        "tags": ["clients"]
+        "tags": [
+          "clients"
+        ]
       }
     },
     "/api/v1/health": {
@@ -2554,7 +2722,9 @@
           }
         },
         "summary": "Liveness probe",
-        "tags": ["meta"]
+        "tags": [
+          "meta"
+        ]
       }
     },
     "/api/v1/instruments": {
@@ -2652,7 +2822,9 @@
           }
         ],
         "summary": "Search the instrument catalog",
-        "tags": ["market"]
+        "tags": [
+          "market"
+        ]
       }
     },
     "/api/v1/instruments/{symbol}": {
@@ -2697,7 +2869,9 @@
           }
         ],
         "summary": "Get an instrument",
-        "tags": ["market"]
+        "tags": [
+          "market"
+        ]
       }
     },
     "/api/v1/instruments/{symbol}/history": {
@@ -2780,7 +2954,9 @@
           }
         ],
         "summary": "Daily close history for an instrument",
-        "tags": ["market"]
+        "tags": [
+          "market"
+        ]
       }
     },
     "/api/v1/instruments/{symbol}/quote": {
@@ -2825,7 +3001,9 @@
           }
         ],
         "summary": "Latest quote for an instrument",
-        "tags": ["market"]
+        "tags": [
+          "market"
+        ]
       }
     },
     "/api/v1/market/macro/{code}": {
@@ -2907,7 +3085,9 @@
           }
         ],
         "summary": "Macro series from the Brazilian Central Bank",
-        "tags": ["market"]
+        "tags": [
+          "market"
+        ]
       }
     },
     "/api/v1/market/overview": {
@@ -2931,7 +3111,9 @@
           }
         ],
         "summary": "Dashboard snapshot: macro indicators and blue-chip quotes",
-        "tags": ["market"]
+        "tags": [
+          "market"
+        ]
       }
     },
     "/api/v1/portfolios": {
@@ -3029,7 +3211,9 @@
           }
         ],
         "summary": "List portfolios with client/status filters and cursor pagination",
-        "tags": ["portfolios"]
+        "tags": [
+          "portfolios"
+        ]
       },
       "post": {
         "operationId": "open_portfolio_api_v1_portfolios_post",
@@ -3071,7 +3255,9 @@
           }
         ],
         "summary": "Open a portfolio for a client",
-        "tags": ["portfolios"]
+        "tags": [
+          "portfolios"
+        ]
       }
     },
     "/api/v1/portfolios/{portfolio_id}": {
@@ -3117,7 +3303,9 @@
           }
         ],
         "summary": "Get a portfolio with its current valuation",
-        "tags": ["portfolios"]
+        "tags": [
+          "portfolios"
+        ]
       },
       "patch": {
         "operationId": "rename_portfolio_api_v1_portfolios__portfolio_id__patch",
@@ -3171,7 +3359,9 @@
           }
         ],
         "summary": "Rename a portfolio",
-        "tags": ["portfolios"]
+        "tags": [
+          "portfolios"
+        ]
       }
     },
     "/api/v1/portfolios/{portfolio_id}/archive": {
@@ -3217,7 +3407,9 @@
           }
         ],
         "summary": "Archive a portfolio",
-        "tags": ["portfolios"]
+        "tags": [
+          "portfolios"
+        ]
       }
     },
     "/api/v1/portfolios/{portfolio_id}/targets": {
@@ -3273,7 +3465,9 @@
           }
         ],
         "summary": "Set the strategic allocation targets (weights in basis points)",
-        "tags": ["portfolios"]
+        "tags": [
+          "portfolios"
+        ]
       }
     },
     "/api/v1/portfolios/{portfolio_id}/transactions": {
@@ -3323,7 +3517,9 @@
           }
         ],
         "summary": "List the portfolio ledger",
-        "tags": ["portfolios"]
+        "tags": [
+          "portfolios"
+        ]
       },
       "post": {
         "operationId": "record_transaction_api_v1_portfolios__portfolio_id__transactions_post",
@@ -3377,7 +3573,9 @@
           }
         ],
         "summary": "Record a transaction in the portfolio ledger",
-        "tags": ["portfolios"]
+        "tags": [
+          "portfolios"
+        ]
       }
     },
     "/api/v1/quotes": {
@@ -3428,7 +3626,9 @@
           }
         ],
         "summary": "Batch quote lookup (comma-separated symbols)",
-        "tags": ["market"]
+        "tags": [
+          "market"
+        ]
       }
     },
     "/api/v1/readyz": {
@@ -3447,7 +3647,9 @@
           }
         },
         "summary": "Readiness probe (checks the database)",
-        "tags": ["meta"]
+        "tags": [
+          "meta"
+        ]
       }
     }
   }
