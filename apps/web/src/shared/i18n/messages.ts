@@ -191,6 +191,9 @@ export const pt = {
   "status.archived": "Arquivado",
 
   "footer.rights": "Basis — plataforma de gestão de investimentos.",
+  "footer.notice": "Aviso",
+  "footer.version": "Versão",
+  "footer.api": "Documentação da API",
   "footer.disclaimer":
     "Dados de mercado com fins informativos. Não constitui recomendação de investimento.",
 } as const
@@ -383,8 +386,10 @@ export const en: Record<MessageKey, string> = {
 
   "status.active": "Active",
   "status.archived": "Archived",
-
   "footer.rights": "Basis — investment management platform.",
+  "footer.notice": "Notice",
+  "footer.version": "Version",
+  "footer.api": "API documentation",
   "footer.disclaimer": "Market data for informational purposes only. Not investment advice.",
 }
 

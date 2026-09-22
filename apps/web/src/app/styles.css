@@ -96,3 +96,25 @@
     animation: none;
   }
 }
+
+/* Footer: every column starts with the same mono label so the three columns
+   share a baseline instead of drifting up or down. */
+.foot-note {
+  margin: 0;
+  max-width: 36ch;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ash);
+}
+
+.foot-link {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 2px;
+  transition: border-color 0.35s var(--ease);
+}
+
+.foot-link:hover {
+  border-color: var(--ink);
+}

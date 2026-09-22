@@ -15,6 +15,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 import { logout } from "@/entities/session/api"
 import { useSessionStore } from "@/entities/session/store"
+import { env } from "@/shared/config/env"
 import { useI18n } from "@/shared/i18n/provider"
 import { LanguageSwitch, useThemeToggle } from "./controls"
 
@@ -53,14 +54,16 @@ export function TopBar() {
         </div>
 
         <nav className="mono hidden items-center gap-8 md:flex" aria-label={t("nav.menu")}>
-          {NAV.map((item) => (
-            <a key={item.to} href={item.to} className="roll">
-              <span>
-                <i>{t(item.key)}</i>
-                <i aria-hidden="true">{t(item.key)}</i>
-              </span>
-            </a>
-          ))}
+          {user
+            ? NAV.map((item) => (
+                <a key={item.to} href={item.to} className="roll">
+                  <span>
+                    <i>{t(item.key)}</i>
+                    <i aria-hidden="true">{t(item.key)}</i>
+                  </span>
+                </a>
+              ))
+            : null}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -139,15 +142,26 @@ export function AppFooter() {
     <footer className="foot">
       <div className="shell foot-grid">
         <div>
-          <div className="mark mb-3">BS</div>
-          <p className="max-w-[34ch] text-sm">{t("footer.rights")}</p>
+          <h4>{t("app.name")}</h4>
+          <p className="foot-note">{t("footer.rights")}</p>
         </div>
         <div>
-          <h4>{t("footer.disclaimer")}</h4>
+          <h4>{t("footer.notice")}</h4>
+          <p className="foot-note">{t("footer.disclaimer")}</p>
         </div>
         <div>
-          <h4>{t("app.tagline")}</h4>
+          <h4>{t("footer.version")}</h4>
           <p className="mono">Alpha · 0.1.0</p>
+          <p className="mt-3">
+            <a
+              className="foot-link mono"
+              href={`${env.apiUrl}/docs`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t("footer.api")}
+            </a>
+          </p>
         </div>
       </div>
     </footer>
