@@ -4,7 +4,7 @@
 > extrato, posições, performance, risco e dados de mercado em um monolito modular com
 > frontend próprio.
 
-[![CI](https://github.com/JV-L0pes/Investment-Management-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/JV-L0pes/Investment-Management-Platform/actions/workflows/ci.yml)
+[![CI](https://github.com/JV-L0pes/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/JV-L0pes/basis/actions/workflows/ci.yml)
 
 **English:** [README.en.md](README.en.md) — Basis is an investment management platform for the Brazilian market: a DDD modular monolith (FastAPI + SQLAlchemy) with a React/Vite SPA built on the "Ink" design system, live market data with a deterministic fallback, and financial mathematics (TWR, XIRR, risk metrics, rebalancing) covered by 519 tests.
 
