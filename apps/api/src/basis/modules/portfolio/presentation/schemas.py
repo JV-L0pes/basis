@@ -102,12 +102,8 @@ class PositionValuationResponse(BaseModel):
             quantity=decimal_str(valuation.quantity),
             average_cost=money_amount(valuation.average_cost),
             cost_basis=money_amount(valuation.cost_basis),
-            market_price=(
-                money_amount(valuation.market_price) if valuation.market_price else None
-            ),
-            market_value=(
-                money_amount(valuation.market_value) if valuation.market_value else None
-            ),
+            market_price=(money_amount(valuation.market_price) if valuation.market_price else None),
+            market_value=(money_amount(valuation.market_value) if valuation.market_value else None),
             unrealized_gain=(
                 money_amount(valuation.unrealized_gain) if valuation.unrealized_gain else None
             ),

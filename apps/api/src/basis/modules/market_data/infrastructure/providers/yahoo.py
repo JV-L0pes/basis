@@ -128,7 +128,9 @@ class YahooQuoteProvider:
         quote_blocks = as_sequence(indicators.get("quote"))
         if not quote_blocks:
             return []
-        return [as_decimal(value) for value in as_sequence(as_mapping(quote_blocks[0]).get("close"))]
+        return [
+            as_decimal(value) for value in as_sequence(as_mapping(quote_blocks[0]).get("close"))
+        ]
 
     @staticmethod
     def _currency_of(meta: Mapping[str, object], symbol: str) -> Currency:

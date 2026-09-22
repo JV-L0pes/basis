@@ -139,9 +139,7 @@ RecordTransactionDep = Annotated[RecordTransaction, Depends(get_record_transacti
 ArchivePortfolioDep = Annotated[ArchivePortfolio, Depends(get_archive_portfolio)]
 GetPortfolioDep = Annotated[GetPortfolio, Depends(get_get_portfolio)]
 ListPortfoliosDep = Annotated[ListPortfolios, Depends(get_list_portfolios)]
-GetTransactionsDep = Annotated[
-    GetPortfolioTransactions, Depends(get_portfolio_transactions)
-]
+GetTransactionsDep = Annotated[GetPortfolioTransactions, Depends(get_portfolio_transactions)]
 
 
 __all__ = [

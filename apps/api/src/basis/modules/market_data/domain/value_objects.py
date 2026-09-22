@@ -138,9 +138,7 @@ class MacroSeriesCode(StrEnum):
         try:
             return cls(value.strip().lower())
         except ValueError as exc:
-            raise ValidationError(
-                "Unknown macro series code", details={"code": value}
-            ) from exc
+            raise ValidationError("Unknown macro series code", details={"code": value}) from exc
 
     @property
     def bcb_sgs_id(self) -> int:

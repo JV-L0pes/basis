@@ -269,9 +269,7 @@ class GetPortfolioTransactions:
 
     async def execute(self, portfolio_id: UUID) -> list[TransactionView]:
         portfolio = await _require_portfolio(self._portfolios, portfolio_id)
-        return [
-            TransactionView.from_entity(transaction) for transaction in portfolio.transactions
-        ]
+        return [TransactionView.from_entity(transaction) for transaction in portfolio.transactions]
 
 
 class ListPortfolios:
@@ -320,23 +318,17 @@ def _parse_asset_class(value: str) -> AssetClass:
     try:
         return AssetClass(value.strip().lower())
     except ValueError as exc:
-        raise ValidationError(
-            "Unknown asset class", details={"asset_class": value}
-        ) from exc
+        raise ValidationError("Unknown asset class", details={"asset_class": value}) from exc
 
 
 def _parse_transaction_kind(value: str) -> TransactionKind:
     try:
         return TransactionKind(value.strip().lower())
     except ValueError as exc:
-        raise ValidationError(
-            "Unknown transaction kind", details={"kind": value}
-        ) from exc
+        raise ValidationError("Unknown transaction kind", details={"kind": value}) from exc
 
 
-async def _require_portfolio(
-    portfolios: PortfolioRepository, portfolio_id: UUID
-) -> Portfolio:
+async def _require_portfolio(portfolios: PortfolioRepository, portfolio_id: UUID) -> Portfolio:
     portfolio = await portfolios.get(portfolio_id)
     if portfolio is None:
         raise NotFoundError("Portfolio not found", details={"portfolio_id": str(portfolio_id)})

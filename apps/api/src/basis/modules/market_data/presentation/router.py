@@ -51,16 +51,12 @@ async def list_instruments(
     cursor: Annotated[str | None, Query(max_length=200)] = None,
 ) -> InstrumentListResponse:
     page = await use_case.execute(
-        SearchInstrumentsQuery(
-            query=query, asset_class=asset_class, limit=limit, cursor=cursor
-        )
+        SearchInstrumentsQuery(query=query, asset_class=asset_class, limit=limit, cursor=cursor)
     )
     return InstrumentListResponse.from_page(page)
 
 
-@router.get(
-    "/instruments/{symbol}", response_model=InstrumentResponse, summary="Get an instrument"
-)
+@router.get("/instruments/{symbol}", response_model=InstrumentResponse, summary="Get an instrument")
 async def get_instrument(
     symbol: str,
     use_case: GetInstrumentDep,

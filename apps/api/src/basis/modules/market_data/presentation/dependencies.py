@@ -64,9 +64,7 @@ def build_market_data_runtime(settings: Settings) -> MarketDataRuntime:
         ),
         allow_live_providers=settings.market_data.allow_live_providers,
     )
-    return MarketDataRuntime(
-        quotes=providers.quotes, macro=providers.macro, seed=providers.seed
-    )
+    return MarketDataRuntime(quotes=providers.quotes, macro=providers.macro, seed=providers.seed)
 
 
 def get_market_data_runtime(request: Request) -> MarketDataRuntime:
@@ -147,9 +145,7 @@ GetQuotesDep = Annotated[GetQuotes, Depends(get_get_quotes)]
 GetPriceHistoryDep = Annotated[GetPriceHistory, Depends(get_get_price_history)]
 GetMacroSeriesDep = Annotated[GetMacroSeries, Depends(get_get_macro_series)]
 GetMarketOverviewDep = Annotated[GetMarketOverview, Depends(get_get_market_overview)]
-SyncInstrumentCatalogDep = Annotated[
-    SyncInstrumentCatalog, Depends(get_sync_instrument_catalog)
-]
+SyncInstrumentCatalogDep = Annotated[SyncInstrumentCatalog, Depends(get_sync_instrument_catalog)]
 
 
 __all__ = [

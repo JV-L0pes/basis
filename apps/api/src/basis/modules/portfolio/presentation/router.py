@@ -53,9 +53,7 @@ async def list_portfolios(
     cursor: Annotated[str | None, Query(max_length=200)] = None,
 ) -> PortfolioListResponse:
     page = await use_case.execute(
-        ListPortfoliosQuery(
-            client_id=client_id, status=status_filter, limit=limit, cursor=cursor
-        )
+        ListPortfoliosQuery(client_id=client_id, status=status_filter, limit=limit, cursor=cursor)
     )
     return PortfolioListResponse.from_page(page)
 
@@ -164,9 +162,7 @@ async def list_transactions(
     use_case: GetTransactionsDep,
     user: CurrentUserDep,
 ) -> list[TransactionResponse]:
-    return [
-        TransactionResponse.from_view(view) for view in await use_case.execute(portfolio_id)
-    ]
+    return [TransactionResponse.from_view(view) for view in await use_case.execute(portfolio_id)]
 
 
 @router.post(

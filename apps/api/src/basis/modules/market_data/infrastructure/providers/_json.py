@@ -25,7 +25,9 @@ def as_decimal(value: object) -> Decimal | None:
     if isinstance(value, (int, float)):
         return Decimal(str(value))
     if isinstance(value, str):
-        cleaned = value.strip().replace(".", "").replace(",", ".") if "," in value else value.strip()
+        cleaned = (
+            value.strip().replace(".", "").replace(",", ".") if "," in value else value.strip()
+        )
         try:
             return Decimal(cleaned)
         except InvalidOperation:

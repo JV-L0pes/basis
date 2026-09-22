@@ -126,9 +126,7 @@ class RoutedQuoteProvider:
         if quote is not None:
             self._cache.set(f"quote:{symbol}", quote, self._ttl)
 
-    async def _refresh_history(
-        self, symbol: str, *, start: date, end: date, key: str
-    ) -> None:
+    async def _refresh_history(self, symbol: str, *, start: date, end: date, key: str) -> None:
         try:
             points = await self.primary_for(symbol).get_history(symbol, start=start, end=end)
         except Exception as exc:  # noqa: BLE001 — the seed series is already served

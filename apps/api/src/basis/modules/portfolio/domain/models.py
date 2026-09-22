@@ -167,7 +167,10 @@ class Position:
         if transaction.instrument.symbol != self.instrument.symbol:
             raise ValidationError(
                 "Transaction does not belong to this position",
-                details={"expected": self.instrument.symbol, "actual": transaction.instrument.symbol},
+                details={
+                    "expected": self.instrument.symbol,
+                    "actual": transaction.instrument.symbol,
+                },
             )
 
         kind = transaction.kind
@@ -195,7 +198,9 @@ class Position:
             proceeds = transaction.gross_value - transaction.fees
             cost = (self.average_cost * transaction.quantity).quantize()
             new_quantity = self.quantity - transaction.quantity
-            average = self.average_cost if new_quantity > 0 else Money.zero(self.instrument.currency)
+            average = (
+                self.average_cost if new_quantity > 0 else Money.zero(self.instrument.currency)
+            )
             return replace(
                 self,
                 quantity=new_quantity,
@@ -274,9 +279,7 @@ class Portfolio(AggregateRoot[UUID]):
         self.targets = targets
         self.updated_at = moment
         self.record(
-            AllocationTargetsSet(
-                occurred_at=moment, portfolio_id=self.id, targets=len(targets)
-            )
+            AllocationTargetsSet(occurred_at=moment, portfolio_id=self.id, targets=len(targets))
         )
 
     def record_transaction(self, transaction: Transaction, *, clock: Clock) -> None:

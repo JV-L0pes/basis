@@ -51,9 +51,7 @@ class PortfolioValuation:
 
     @property
     def net_result(self) -> Money:
-        return (
-            self.unrealized_gain + self.realized_gain + self.income - self.costs
-        ).quantize()
+        return (self.unrealized_gain + self.realized_gain + self.income - self.costs).quantize()
 
     @property
     def return_percent(self) -> Decimal | None:
@@ -88,9 +86,7 @@ def valuate(
         if price is None:
             unpriced.append(position.instrument.symbol)
         else:
-            total_market_value = total_market_value + (
-                price * position.quantity
-            ).quantize()
+            total_market_value = total_market_value + (price * position.quantity).quantize()
 
     valuations: list[PositionValuation] = []
     invested = Money.zero(base)

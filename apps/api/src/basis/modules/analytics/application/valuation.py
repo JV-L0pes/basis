@@ -60,10 +60,7 @@ def build_valuation_series(
         return []
 
     fallback = {position.symbol: position.average_cost for position in snapshot.positions}
-    series = {
-        symbol: PriceSeries.from_map(points)
-        for symbol, points in history.items()
-    }
+    series = {symbol: PriceSeries.from_map(points) for symbol, points in history.items()}
     by_day: dict[date, list[TransactionSnapshot]] = defaultdict(list)
     for transaction in sorted(snapshot.transactions, key=lambda item: item.trade_date):
         by_day[transaction.trade_date].append(transaction)

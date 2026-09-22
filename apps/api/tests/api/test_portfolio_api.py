@@ -177,9 +177,7 @@ class TestPortfolioFlow:
         assert position["average_cost"] == "15.05"
         assert detail["valuation"]["income"] == "50.00"
 
-    def test_selling_more_than_held_returns_invariant_violation(
-        self, client: TestClient
-    ) -> None:
+    def test_selling_more_than_held_returns_invariant_violation(self, client: TestClient) -> None:
         headers = _auth_headers(client)
         portfolio = _open_portfolio(client, headers)
         _record(client, headers, portfolio["id"], symbol="VALE3", quantity="10", price="60.00")

@@ -73,9 +73,7 @@ def money_weighted_return(flows: Sequence[CashFlow]) -> Decimal | None:
     """Annualised internal rate of return of dated cash flows (XIRR)."""
     if len(flows) < 2:
         return None
-    if not any(flow.amount > 0 for flow in flows) or not any(
-        flow.amount < 0 for flow in flows
-    ):
+    if not any(flow.amount > 0 for flow in flows) or not any(flow.amount < 0 for flow in flows):
         return None
 
     origin = min(flow.date for flow in flows)
@@ -141,9 +139,7 @@ def daily_returns(points: Sequence[ValuationPoint]) -> list[Decimal]:
         if previous.market_value <= 0:
             previous = point
             continue
-        returns.append(
-            (point.market_value - point.external_flow) / previous.market_value - ONE
-        )
+        returns.append((point.market_value - point.external_flow) / previous.market_value - ONE)
         previous = point
     return returns
 
@@ -182,9 +178,7 @@ def annualized_return(returns: Sequence[Decimal]) -> Decimal | None:
     return (growth**exponent - ONE).quantize(Decimal("0.000001"))
 
 
-def sharpe_ratio(
-    returns: Sequence[Decimal], *, risk_free_annual: Decimal
-) -> Decimal | None:
+def sharpe_ratio(returns: Sequence[Decimal], *, risk_free_annual: Decimal) -> Decimal | None:
     """Annualised excess return per unit of annualised volatility."""
     volatility = annualized_volatility(returns)
     annual = annualized_return(returns)
@@ -218,15 +212,15 @@ def beta(returns: Sequence[Decimal], benchmark: Sequence[Decimal]) -> Decimal | 
         (sample[index] - mean_sample) * (reference[index] - mean_reference)
         for index in range(length)
     ) / Decimal(length - 1)
-    variance = sum((value - mean_reference) ** 2 for value in reference) / Decimal(
-        length - 1
-    )
+    variance = sum((value - mean_reference) ** 2 for value in reference) / Decimal(length - 1)
     if variance == 0:
         return None
     return (covariance / variance).quantize(Decimal("0.0001"))
 
 
-def historical_var(returns: Sequence[Decimal], *, confidence: Decimal = Decimal("0.95")) -> Decimal | None:
+def historical_var(
+    returns: Sequence[Decimal], *, confidence: Decimal = Decimal("0.95")
+) -> Decimal | None:
     """Historical value at risk: the loss at the given confidence level."""
     if not returns:
         return None

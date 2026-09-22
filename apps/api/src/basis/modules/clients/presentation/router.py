@@ -100,11 +100,7 @@ async def update_client(
             client_id=client_id,
             name=payload.name,
             email=payload.email,
-            notes=(
-                payload.notes
-                if "notes" in payload.model_fields_set
-                else UNSET
-            ),
+            notes=(payload.notes if "notes" in payload.model_fields_set else UNSET),
         )
     )
     return ClientResponse.from_view(view)

@@ -213,6 +213,4 @@ class TestRoutedQuoteProvider:
     )
     def test_routes_symbols_to_the_right_provider(self, symbol: str, expected: str) -> None:
         provider = self.routed(allow_live=True)
-        assert provider.primary_for(symbol).__class__ is getattr(
-            provider, f"_{expected}"
-        ).__class__
+        assert provider.primary_for(symbol).__class__ is getattr(provider, f"_{expected}").__class__

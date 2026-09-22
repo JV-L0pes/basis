@@ -100,10 +100,18 @@ class TestTransactionValidation:
         assert transaction(quantity="100", price="10.00").gross_value == money("1000.00")
 
     def test_cash_flow_signs(self) -> None:
-        assert transaction(kind=TransactionKind.BUY, quantity="10", price="10").cash_flow == money("-100.00")
-        assert transaction(kind=TransactionKind.SELL, quantity="10", price="10").cash_flow == money("100.00")
-        assert transaction(kind=TransactionKind.DIVIDEND, quantity="1", price="25").cash_flow == money("25.00")
-        assert transaction(kind=TransactionKind.FEE, quantity="1", price="5").cash_flow == money("-5.00")
+        assert transaction(kind=TransactionKind.BUY, quantity="10", price="10").cash_flow == money(
+            "-100.00"
+        )
+        assert transaction(kind=TransactionKind.SELL, quantity="10", price="10").cash_flow == money(
+            "100.00"
+        )
+        assert transaction(
+            kind=TransactionKind.DIVIDEND, quantity="1", price="25"
+        ).cash_flow == money("25.00")
+        assert transaction(kind=TransactionKind.FEE, quantity="1", price="5").cash_flow == money(
+            "-5.00"
+        )
 
 
 class TestPositionFold:
@@ -127,9 +135,7 @@ class TestPositionFold:
     def test_sell_realizes_gain_and_keeps_average_cost(self) -> None:
         portfolio = self._portfolio_with(
             transaction(quantity="100", price="10.00"),
-            transaction(
-                kind=TransactionKind.SELL, quantity="40", price="15.00", fees="2.00"
-            ),
+            transaction(kind=TransactionKind.SELL, quantity="40", price="15.00", fees="2.00"),
         )
         position = portfolio.positions()[0]
         assert position.quantity == Decimal(60)
@@ -176,7 +182,9 @@ class TestPositionFold:
         assert position.net_result == money("-10.00")
 
     def test_positions_are_ordered_by_symbol(self) -> None:
-        portfolio = self._portfolio_with(transaction(instrument=PETR4), transaction(instrument=VALE3))
+        portfolio = self._portfolio_with(
+            transaction(instrument=PETR4), transaction(instrument=VALE3)
+        )
         assert [position.instrument.symbol for position in portfolio.positions()] == [
             "PETR4",
             "VALE3",
@@ -256,9 +264,7 @@ class TestValuation:
         return portfolio
 
     def test_valuation_marks_positions_to_market(self) -> None:
-        valuation = valuate(
-            self._portfolio(), {"PETR4": money("12.00"), "VALE3": money("61.00")}
-        )
+        valuation = valuate(self._portfolio(), {"PETR4": money("12.00"), "VALE3": money("61.00")})
         assert valuation.invested == money("1600.00")
         assert valuation.market_value == money("1810.00")
         assert valuation.unrealized_gain == money("210.00")
@@ -274,9 +280,7 @@ class TestValuation:
         assert valuation.positions[1].market_value is None
 
     def test_weights_are_shares_of_market_value(self) -> None:
-        valuation = valuate(
-            self._portfolio(), {"PETR4": money("10.00"), "VALE3": money("60.00")}
-        )
+        valuation = valuate(self._portfolio(), {"PETR4": money("10.00"), "VALE3": money("60.00")})
         petr = valuation.positions[0]
         vale = valuation.positions[1]
         assert petr.weight == Decimal("0.6250")

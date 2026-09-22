@@ -72,9 +72,7 @@ class GetPortfolioPerformance:
     ) -> PerformanceReport:
         snapshot = await self._portfolios.get_snapshot(portfolio_id)
         if snapshot is None:
-            raise NotFoundError(
-                "Portfolio not found", details={"portfolio_id": str(portfolio_id)}
-            )
+            raise NotFoundError("Portfolio not found", details={"portfolio_id": str(portfolio_id)})
 
         resolved_end = end or self._clock.today()
         resolved_start = start or _default_start(snapshot, resolved_end)
@@ -82,9 +80,7 @@ class GetPortfolioPerformance:
             raise ValidationError("End date must not precede start date")
 
         history = await self._history_for(snapshot, resolved_start, resolved_end)
-        series = build_valuation_series(
-            snapshot, history, start=resolved_start, end=resolved_end
-        )
+        series = build_valuation_series(snapshot, history, start=resolved_start, end=resolved_end)
         if not series:
             raise ValidationError("No valuation data for the requested period")
 
@@ -96,9 +92,7 @@ class GetPortfolioPerformance:
         )
 
         flows = cash_flows(snapshot, series)
-        contributions = sum(
-            (-flow.amount for flow in flows[:-1] if flow.amount < 0), Decimal(0)
-        )
+        contributions = sum((-flow.amount for flow in flows[:-1] if flow.amount < 0), Decimal(0))
 
         return PerformanceReport(
             portfolio_id=portfolio_id,
@@ -158,9 +152,7 @@ class GetPortfolioPerformance:
         if len(points) < 2:
             return [], None
         closes = [point.close.amount for point in points]
-        returns = [
-            closes[index] / closes[index - 1] - ONE for index in range(1, len(closes))
-        ]
+        returns = [closes[index] / closes[index - 1] - ONE for index in range(1, len(closes))]
         total = (closes[-1] / closes[0] - ONE).quantize(Decimal("0.0001"))
         return returns, total
 
@@ -182,16 +174,12 @@ class GetAllocationAnalysis:
     async def execute(self, portfolio_id: UUID) -> AllocationAnalysis:
         snapshot = await self._portfolios.get_snapshot(portfolio_id)
         if snapshot is None:
-            raise NotFoundError(
-                "Portfolio not found", details={"portfolio_id": str(portfolio_id)}
-            )
+            raise NotFoundError("Portfolio not found", details={"portfolio_id": str(portfolio_id)})
 
         prices = await self._prices(snapshot)
         unpriced = tuple(
             sorted(
-                position.symbol
-                for position in snapshot.positions
-                if position.symbol not in prices
+                position.symbol for position in snapshot.positions if position.symbol not in prices
             )
         )
         priced = [
@@ -274,9 +262,7 @@ class GetBookOverview:
         if not snapshots:
             return BookOverview(portfolio_count=0, total_market_value=Decimal(0))
 
-        symbols = {
-            position.symbol for snapshot in snapshots for position in snapshot.positions
-        }
+        symbols = {position.symbol for snapshot in snapshots for position in snapshot.positions}
         quotes = await self._quotes.get_quotes(sorted(symbols)) if symbols else {}
         prices = {symbol: quote.price.amount for symbol, quote in quotes.items()}
 

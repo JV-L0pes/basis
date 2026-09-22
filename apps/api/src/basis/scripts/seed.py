@@ -378,9 +378,7 @@ async def seed_demo(
         portfolios = SqlAlchemyPortfolioRepository(session)
         uow = SqlAlchemyUnitOfWork(session)
 
-        register_client = RegisterClient(
-            clients=clients_repo, clock=clock, uow=uow, events=bus
-        )
+        register_client = RegisterClient(clients=clients_repo, clock=clock, uow=uow, events=bus)
         open_portfolio = OpenPortfolio(
             portfolios=portfolios,
             clients=clients_directory,
@@ -395,9 +393,7 @@ async def seed_demo(
             uow=uow,
             events=bus,
         )
-        set_targets = SetAllocationTargets(
-            portfolios=portfolios, clock=clock, uow=uow, events=bus
-        )
+        set_targets = SetAllocationTargets(portfolios=portfolios, clock=clock, uow=uow, events=bus)
 
         for client in DEMO_CLIENTS:
             if await clients_repo.get_by_tax_id(TaxId(client.tax_id)) is not None:

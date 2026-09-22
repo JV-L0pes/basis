@@ -70,9 +70,7 @@ class PerformanceResponse(BaseModel):
             benchmark_symbol=report.benchmark_symbol,
             benchmark_return=_to_float(report.benchmark_return),
             risk_free_annual=_to_float(report.risk_free_annual),
-            equity_curve=[
-                EquityPointResponse.from_dto(point) for point in report.equity_curve
-            ],
+            equity_curve=[EquityPointResponse.from_dto(point) for point in report.equity_curve],
         )
 
 

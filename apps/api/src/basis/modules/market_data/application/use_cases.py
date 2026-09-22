@@ -72,9 +72,7 @@ class SearchInstruments:
             asset_class=query.asset_class,
         )
         items = InstrumentView.from_entities(instruments)
-        next_cursor = (
-            encode_cursor({"symbol": items[-1].symbol}) if has_more and items else None
-        )
+        next_cursor = encode_cursor({"symbol": items[-1].symbol}) if has_more and items else None
         return InstrumentPage(items=items, next_cursor=next_cursor)
 
 
@@ -208,9 +206,7 @@ class GetMarketOverview:
         gainers = ordered[:5]
         losers = list(reversed(ordered[-5:]))
 
-        return MarketOverview(
-            macro=macro_points, quotes=quotes, gainers=gainers, losers=losers
-        )
+        return MarketOverview(macro=macro_points, quotes=quotes, gainers=gainers, losers=losers)
 
 
 class SyncInstrumentCatalog:

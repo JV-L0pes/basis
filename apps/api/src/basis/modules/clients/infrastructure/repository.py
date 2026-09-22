@@ -61,8 +61,7 @@ class SqlAlchemyClientRepository:
         filters = _filters(query, status)
         if cursor is not None:
             filters.append(
-                tuple_(ClientRow.created_at, ClientRow.id)
-                < (cursor.created_at, cursor.id)
+                tuple_(ClientRow.created_at, ClientRow.id) < (cursor.created_at, cursor.id)
             )
 
         statement = (

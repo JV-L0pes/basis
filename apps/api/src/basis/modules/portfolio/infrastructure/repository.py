@@ -55,15 +55,11 @@ class SqlAlchemyPortfolioRepository:
     async def update(self, portfolio: Portfolio) -> None:
         row = await self._session.get(PortfolioRow, portfolio.id)
         if row is None:
-            raise NotFoundError(
-                "Portfolio not found", details={"portfolio_id": str(portfolio.id)}
-            )
+            raise NotFoundError("Portfolio not found", details={"portfolio_id": str(portfolio.id)})
         apply_portfolio(portfolio, row)
 
         await self._session.execute(
-            delete(PortfolioTargetRow).where(
-                PortfolioTargetRow.portfolio_id == portfolio.id
-            )
+            delete(PortfolioTargetRow).where(PortfolioTargetRow.portfolio_id == portfolio.id)
         )
         for target in portfolio.targets:
             self._session.add(target_to_row(target, portfolio.id))
@@ -86,8 +82,7 @@ class SqlAlchemyPortfolioRepository:
             filters.append(PortfolioRow.status == str(status))
         if cursor is not None:
             filters.append(
-                tuple_(PortfolioRow.created_at, PortfolioRow.id)
-                < (cursor.created_at, cursor.id)
+                tuple_(PortfolioRow.created_at, PortfolioRow.id) < (cursor.created_at, cursor.id)
             )
 
         statement = (

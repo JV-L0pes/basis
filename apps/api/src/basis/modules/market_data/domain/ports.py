@@ -87,9 +87,7 @@ class QuoteProvider(Protocol):
 
     async def get_quotes(self, symbols: Sequence[str]) -> Mapping[str, QuoteView]: ...
 
-    async def get_history(
-        self, symbol: str, *, start: date, end: date
-    ) -> Sequence[PricePoint]: ...
+    async def get_history(self, symbol: str, *, start: date, end: date) -> Sequence[PricePoint]: ...
 
 
 class MacroProvider(Protocol):

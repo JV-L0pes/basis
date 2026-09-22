@@ -80,8 +80,7 @@ class TestMoneyWeightedReturn:
         one = Decimal(1)
         npv = sum(
             (
-                flow.amount
-                / (one + rate) ** (Decimal((flow.date - origin).days) / Decimal(365))
+                flow.amount / (one + rate) ** (Decimal((flow.date - origin).days) / Decimal(365))
                 for flow in flows
             ),
             Decimal(0),

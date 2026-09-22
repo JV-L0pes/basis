@@ -41,9 +41,7 @@ def get_portfolio_performance(
     macro: MacroDep,
     clock: ClockDep,
 ) -> GetPortfolioPerformance:
-    return GetPortfolioPerformance(
-        portfolios=portfolios, quotes=quotes, macro=macro, clock=clock
-    )
+    return GetPortfolioPerformance(portfolios=portfolios, quotes=quotes, macro=macro, clock=clock)
 
 
 def get_allocation_analysis(

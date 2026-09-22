@@ -93,9 +93,7 @@ class InMemoryClientRepository:
         return self.clients.get(client_id)
 
     async def get_by_tax_id(self, tax_id: TaxId) -> Client | None:
-        return next(
-            (client for client in self.clients.values() if client.tax_id == tax_id), None
-        )
+        return next((client for client in self.clients.values() if client.tax_id == tax_id), None)
 
     async def add(self, client: Client) -> None:
         self.clients[client.id] = client

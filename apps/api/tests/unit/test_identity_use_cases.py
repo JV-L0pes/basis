@@ -213,8 +213,7 @@ class TestRefreshSession:
 
         # The rotated session is untouched: this is a client race, not theft.
         assert (
-            harness.refresh_tokens.records[token_digest(rotated.refresh.token)].revoked_at
-            is None
+            harness.refresh_tokens.records[token_digest(rotated.refresh.token)].revoked_at is None
         )
 
     async def test_reuse_beyond_the_grace_window_revokes_every_session(self) -> None:
