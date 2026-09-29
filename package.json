@@ -48,9 +48,9 @@
     "eslint-plugin-sonarjs": "^4.2.1",
     "eslint-plugin-testing-library": "^7.16.2",
     "globals": "^17.12.0",
-    "knip": "^6.37.0",
-    "turbo": "^2.5.8",
-    "typescript-eslint": "^8.70.0",
+    "knip": "^6.38.0",
+    "turbo": "^2.11.4",
+    "typescript-eslint": "^8.70.1",
     "vite": "^6.0.7"
   },
   "pnpm": {
