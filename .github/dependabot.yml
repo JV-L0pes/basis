@@ -6,6 +6,10 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    ignore:
+      # typescript-eslint (8.x, canary included) only supports typescript <6.1.0.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       web-minor-patch:
         patterns: ["*"]
