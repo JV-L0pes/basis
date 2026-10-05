@@ -16,7 +16,7 @@
     "@basis/ui": "workspace:*",
     "@hookform/resolvers": "^5.9.1",
     "@tanstack/react-query": "^5.104.0",
-    "@tanstack/react-router": "^1.170.39",
+    "@tanstack/react-router": "^1.170.41",
     "openapi-fetch": "^0.17.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -37,7 +37,7 @@
     "msw": "^2.7.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",
-    "vite": "^8.0.0",
-    "vitest": "^5.0.2"
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
   }
 }
